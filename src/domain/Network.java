@@ -1,5 +1,6 @@
 package domain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Network {
@@ -9,9 +10,14 @@ public class Network {
 	private List<Connection> enrutedConnections;
 	
 	
-	public void generateNetwork() {
-		generateRouters();
-		generateFibers();
+        public Network() {
+            generateNetwork();
+        }
+        
+	private void generateNetwork() {
+		/*generateRouters();
+		generateFibers();*/
+            generateDumbNetwork();
 	}
         
         public List<Router> getRouters() {
@@ -23,15 +29,35 @@ public class Network {
         }
         
         public Fiber getFiber(int id) {
-            return fibers.get(id);
+            return fibers.get(id - 1);
         }
         
         Router getRouter(int id) {
-            return routers.get(id);
+            return routers.get(id - 1);
+        }
+        
+        private void generateDumbNetwork() {
+            routers = new ArrayList<>();
+            List<Integer> attachedFibers = new ArrayList<>();
+            attachedFibers.add(1);
+            routers.add(new Router(1, "PT", attachedFibers));
+            attachedFibers = new ArrayList<>();
+            attachedFibers.add(1);
+            attachedFibers.add(2);
+            routers.add(new Router(2, "ES", attachedFibers));
+            attachedFibers = new ArrayList<>();
+            attachedFibers.add(2);
+            routers.add(new Router(3, "IS", attachedFibers));
+            
+            fibers = new ArrayList<>();
+            fibers.add(new Fiber(1, 1, 2, 4, 200, 1000));
+            fibers.get(0).setWeight(10);
+            fibers.add(new Fiber(2, 2, 3, 4, 40, 200));
+            fibers.get(1).setWeight(20);
         }
 	
 	private void generateRouters() {
-		routers.add(new Router(1, "PT"));
+		/*routers.add(new Router(1, "PT"));
 		routers.add(new Router(2, "ES"));
 		routers.add(new Router(3, "IS"));
 		routers.add(new Router(4, "IE"));
@@ -67,7 +93,7 @@ public class Network {
 		routers.add(new Router(31, "TR"));
 		routers.add(new Router(32, "RU"));
 		routers.add(new Router(33, "CY"));
-		routers.add(new Router(34, "IL"));
+		routers.add(new Router(34, "IL"));*/
 	}
 
 	private void generateFibers() {
@@ -93,7 +119,5 @@ public class Network {
 		fibers.add(new Fiber(19, 4, 5, 16, 10000, 460));
 		fibers.add(new Fiber(20, 29, 30, 16, 10000, 595));
 		
-	}
-
-    
+	}  
 }

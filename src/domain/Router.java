@@ -11,9 +11,10 @@ public class Router {
         private List<Integer> attachedFibers;
 	
 	
-	public Router(int id, String name) {
+	public Router(int id, String name, List<Integer> attachedFibers) {
 		this.id = id;
 		this.name = name;
+                this.attachedFibers = attachedFibers;
 	}
 
 	public int getId() {
@@ -40,7 +41,6 @@ public class Router {
 	public void setActualConsumption(double actualConsumption) {
 		this.actualConsumption = actualConsumption;
 	}
-
         public List<Integer> getAttachedFibers() {
             return attachedFibers;
         }
