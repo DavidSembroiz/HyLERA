@@ -1,18 +1,34 @@
 package domain;
 
-import java.util.Set;
+import java.util.List;
 
 public class Network {
 
-	private Set<Router> routers;
-	private Set<Fiber> fibers;
-	private Set<Connection> enrutedConnections;
+	private List<Router> routers;
+	private List<Fiber> fibers;
+	private List<Connection> enrutedConnections;
 	
 	
-	/*public void generateNetwork() {
+	public void generateNetwork() {
 		generateRouters();
 		generateFibers();
-	}*/
+	}
+        
+        public List<Router> getRouters() {
+            return routers;
+        }
+        
+        public List<Fiber> getFibers() {
+            return fibers;
+        }
+        
+        public Fiber getFiber(int id) {
+            return fibers.get(id);
+        }
+        
+        Router getRouter(int id) {
+            return routers.get(id);
+        }
 	
 	private void generateRouters() {
 		routers.add(new Router(1, "PT"));
@@ -78,4 +94,6 @@ public class Network {
 		fibers.add(new Fiber(20, 29, 30, 16, 10000, 595));
 		
 	}
+
+    
 }

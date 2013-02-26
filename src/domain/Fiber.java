@@ -1,6 +1,6 @@
 package domain;
 
-import java.util.Set;
+import java.util.List;
 
 public class Fiber {
 
@@ -8,7 +8,7 @@ public class Fiber {
 	private int node1, node2;
 	private int numLambdas;
 	private int length;
-	private Set<Lambda> lambdas;
+	private List<Lambda> lambdas;
 	private double totalBandwidth;
 	
 	public Fiber(int id, int node1, int node2, int numLambdas, int length, double totalBandwidth) {
@@ -44,10 +44,10 @@ public class Fiber {
 	public void setLength(int length) {
 		this.length = length;
 	}
-	public Set<Lambda> getLambdas() {
+	public List<Lambda> getLambdas() {
 		return lambdas;
 	}
-	public void setLambdas(Set<Lambda> lambdas) {
+	public void setLambdas(List<Lambda> lambdas) {
 		this.lambdas = lambdas;
 	}
 	public double getTotalBandwidth() {
