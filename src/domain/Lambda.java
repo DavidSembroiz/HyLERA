@@ -30,4 +30,8 @@ public class Lambda {
 	public void setResidualBandwidth(double residualBandwidth) {
 		this.residualBandwidth = residualBandwidth;
 	}
+
+        public void decreaseWeight(double bandwidth) {
+            this.residualBandwidth -= bandwidth;
+        }
 }

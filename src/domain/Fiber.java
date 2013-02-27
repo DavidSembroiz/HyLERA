@@ -10,7 +10,6 @@ public class Fiber {
 	private int length;
 	private List<Lambda> lambdas;
 	private double totalBandwidth;
-        public double weight;
 	
 	public Fiber(int id, int node1, int node2, int numLambdas, double totalBandwidth, int length) {
 		this.id = id;
@@ -20,13 +19,6 @@ public class Fiber {
 		this.length = length;
 		this.totalBandwidth = totalBandwidth;
 	}
-        
-        public void setWeight(double w) {
-            this.weight = w;
-        }
-        public double getWeight() {
-            return weight;
-        }
 	public int getId() {
 		return id;
 	}
@@ -71,5 +63,9 @@ public class Fiber {
 	}
         public Lambda getLambda(int id) {
             return this.lambdas.get(id - 1);
+        }
+
+        public void decreaseWeight(double bandwidth, int lambda) {
+            lambdas.get(lambda - 1).decreaseWeight(bandwidth);
         }
 }

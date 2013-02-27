@@ -37,7 +37,7 @@ public class Network {
             return routers.get(id - 1);
         }
         
-        private void generateDumbNetwork() {
+        /*private void generateDumbNetwork() {
             routers = new ArrayList<>();
             List<Integer> attachedFibers = new ArrayList<>();
             attachedFibers.add(1);
@@ -55,7 +55,7 @@ public class Network {
             fibers.get(0).setWeight(10);
             fibers.add(new Fiber(2, 2, 3, 4, 40, 200));
             fibers.get(1).setWeight(20);
-        }
+        }*/
 	
 	private void generateRouters() {
                 routers = new ArrayList<>();
@@ -108,7 +108,7 @@ public class Network {
 		fibers.add(new Fiber(6, 14, 25, 16, 10000, 830));
 		fibers.add(new Fiber(7, 25, 26, 16, 10000, 280));
 		fibers.add(new Fiber(8, 26, 27, 16, 10000, 260));
-		fibers.add(new Fiber(9, 19, 27, 4, 10000, 395));
+		fibers.add(new Fiber(9, 19, 27, 16, 10000, 395));
 		fibers.add(new Fiber(10, 17, 19, 16, 10000, 515));
 		
 		fibers.add(new Fiber(11, 12, 19, 16, 10000, 506));
@@ -188,7 +188,38 @@ public class Network {
         
         public void printNetwork() {
             for (Router r : routers) {
-                System.out.println("Router " + r.getId() + " " + r.getName());
+                printRouter(r);
+                for (Integer i : r.getAttachedFibers()) {
+                    printFiber(getFiber(i));
+                    for (Lambda l : getFiber(i).getLambdas()) {
+                        printLambda(l);
+                    }
+                }
             }
+        }
+        
+        private void printRouter(Router r) {
+            System.out.println("");
+            System.out.println("Router " + r.getId() + " " + r.getName());
+            System.out.println("--------------------------------");
+        }
+        
+        private void printFiber(Fiber fib) {
+            System.out.println("");
+            System.out.println("Fiber " + fib.getId() + "  Total BW " + fib.getTotalBandwidth());
+            System.out.println("------------------------- Lambdas");
+        }
+        
+        private void printLambda(Lambda l) {
+            System.out.println(l.getId() + "     Residual BW " + l.getResidualBandwidth() + "     Weight " + l.getWeight());
+        }
+
+        public int findFiber(int source, int destination) {
+            for (Fiber fib : fibers) {
+                if ((fib.getNode1() == source && fib.getNode2() == destination) ||
+                    (fib.getNode2() == source && fib.getNode1() == destination))
+                    return fib.getId();
+            }
+            return -10;
         }
 }

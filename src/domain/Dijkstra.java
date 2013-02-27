@@ -11,17 +11,14 @@ import java.util.Set;
 
 public class Dijkstra {
     private final Network net;
-    private List<Router> routers;
-    private List<Fiber> fibers;
     private Set<Router> settledRouters;
     private Set<Router> unsettledRouters;
     private Map<Router, Router> predecessors;
     private Map<Router, Double> distance;
     private Connection c;
     
-    public Dijkstra(Network network, Connection c) {
+    public Dijkstra(Network network) {
         net = network;
-        this.c = c;
     }
     
     public Set<Integer> getPlausibleLambdas() {
@@ -45,14 +42,9 @@ public class Dijkstra {
 
     }
     
-    // Make a new LambdaConstraint Dijkstra, a loop for every possible lambda
-    // of the attachedFibers of node source. For every one, we get the distance
-    // to the destination and we finally choose the minimum one with
-    // the path got from the algorithm.
     
-    public void execute(Router source) {
-        routers = net.getRouters();
-        fibers = net.getFibers();
+    public void execute(Router source, Connection c) {
+        this.c = c;
         settledRouters = new HashSet<>();
         unsettledRouters = new HashSet<>();
         distance = new HashMap<>();
@@ -147,6 +139,20 @@ public class Dijkstra {
             }
         }
         return Integer.MAX_VALUE;
+    }
+    
+    public void decreaseWeights() {
+        LinkedList<Router> p = getPath(net.getRouter(c.getDestination()));
+        Router source = null;
+        if (p != null) {
+            source = p.remove();
+            while (!p.isEmpty()) {
+                Router destination = p.remove();
+                int f = net.findFiber(source.getId(), destination.getId());
+                net.getFiber(f).decreaseWeight(c.getBandwidth(), c.getLambda());
+                source = destination;
+            }
+        }  
     }
     
     public LinkedList<Router> getPath(Router node) {
