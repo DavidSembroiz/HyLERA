@@ -114,7 +114,8 @@ public class Dijkstra {
             lambdas = fib.getLambdas();
             insert = false;
             for (Lambda lam : lambdas) {
-                if (lam.getResidualBandwidth() >= c.getBandwidth()) {
+                if (lam.getId() == c.getLambda() && 
+                    lam.getResidualBandwidth() >= c.getBandwidth()) {
                     insert = true;
                 }
             }

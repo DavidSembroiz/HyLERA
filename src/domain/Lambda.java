@@ -6,7 +6,7 @@ public class Lambda {
 	private double residualBandwidth;
         private double weight;
         
-        public Lambda(int id, int residualBandwidth, int weight) {
+        public Lambda(int id, double residualBandwidth, double weight) {
             this.id = id;
             this.residualBandwidth = residualBandwidth;
             this.weight = weight;

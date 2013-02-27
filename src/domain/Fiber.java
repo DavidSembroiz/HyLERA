@@ -12,7 +12,7 @@ public class Fiber {
 	private double totalBandwidth;
         public double weight;
 	
-	public Fiber(int id, int node1, int node2, int numLambdas, int length, double totalBandwidth) {
+	public Fiber(int id, int node1, int node2, int numLambdas, double totalBandwidth, int length) {
 		this.id = id;
 		this.node1 = node1;
 		this.node2 = node2;
@@ -70,6 +70,6 @@ public class Fiber {
 		this.numLambdas = numLambdas;
 	}
         public Lambda getLambda(int id) {
-            return this.lambdas.get(id);
+            return this.lambdas.get(id - 1);
         }
 }
