@@ -69,4 +69,7 @@ public class Fiber {
 	public void setNumLambdas(int numLambdas) {
 		this.numLambdas = numLambdas;
 	}
+        public Lambda getLambda(int id) {
+            return this.lambdas.get(id);
+        }
 }

@@ -11,20 +11,48 @@ import java.util.Set;
 
 public class Dijkstra {
     private final Network net;
-    private final List<Router> routers;
-    private final List<Fiber> fibers;
+    private List<Router> routers;
+    private List<Fiber> fibers;
     private Set<Router> settledRouters;
     private Set<Router> unsettledRouters;
     private Map<Router, Router> predecessors;
     private Map<Router, Double> distance;
+    private Connection c;
     
-    public Dijkstra(Network network) {
+    public Dijkstra(Network network, Connection c) {
         net = network;
-        routers = network.getRouters();
-        fibers = network.getFibers();
+        this.c = c;
     }
     
+    public Set<Integer> getPlausibleLambdas() {
+        Set<Integer> lambdas = new HashSet<>();
+        Router source = net.getRouter(c.getSource());
+        List<Router> neighbors = this.getNeighbors(source);
+        List<Integer> attFibersId = source.getAttachedFibers();
+        List<Fiber> attFibers = new ArrayList<>();
+        for (Integer fib : attFibersId) {
+            attFibers.add(net.getFiber(fib));
+        }
+        for (Fiber fib : attFibers) {
+            List<Lambda> lam = fib.getLambdas();
+            for (Lambda l : lam) {
+                if (l.getResidualBandwidth() > c.getBandwidth()) {
+                    lambdas.add(l.getId());
+                }
+            }
+        }
+        return lambdas;
+
+    }
+    
+    // Make a new LambdaConstraint Dijkstra, a loop for every possible lambda
+    // of the attachedFibers of node source. For every one, we get the distance
+    // to the destination and we finally choose the minimum one with
+    // the path got from the algorithm.
+    
     public void execute(Router source) {
+        routers = net.getRouters();
+        fibers = net.getFibers();
         settledRouters = new HashSet<>();
         unsettledRouters = new HashSet<>();
         distance = new HashMap<>();
@@ -71,29 +99,37 @@ public class Dijkstra {
         return d;
     }
 
-    // Introduce constraint about weight and lambda
+    // Might change neighbors to HashSet to delete insert variable
     
     private List<Router> getNeighbors(Router node) {
         List<Router> neighbors = new ArrayList<>();
         List<Integer> attFibersId = node.getAttachedFibers();
-        System.out.println(node.getName());
-        System.out.println(attFibersId);
         List<Fiber> attFibers = new ArrayList<>();
+        List<Lambda> lambdas;
+        boolean insert;
         for (Integer fib : attFibersId) {
             attFibers.add(net.getFiber(fib));
         }
         for (Fiber fib : attFibers) {
-            if (fib.getNode1() == node.getId()) {
-                neighbors.add(net.getRouter(fib.getNode2()));
+            lambdas = fib.getLambdas();
+            insert = false;
+            for (Lambda lam : lambdas) {
+                if (lam.getResidualBandwidth() >= c.getBandwidth()) {
+                    insert = true;
+                }
             }
-            else if (fib.getNode2() == node.getId()) {
-                neighbors.add(net.getRouter(fib.getNode1()));
+            if (insert) {
+                if (fib.getNode1() == node.getId()) {
+                    neighbors.add(net.getRouter(fib.getNode2()));
+                }
+                else if (fib.getNode2() == node.getId()) {
+                    neighbors.add(net.getRouter(fib.getNode1()));
+                }
             }
         }
         return neighbors;
     }
     
-    // Change the constraint about the fibers to count the Lambdas
 
     private double getDistance(Router node, Router neighbor) {
         List<Integer> attFibersId = node.getAttachedFibers();
@@ -106,7 +142,7 @@ public class Dijkstra {
                  fib.getNode2() == neighbor.getId()) ||
                  (fib.getNode2() == node.getId() &&
                   fib.getNode1() == neighbor.getId())) {
-                return fib.getWeight();
+                return fib.getLambda(c.getLambda()).getWeight();
             }
         }
         return Integer.MAX_VALUE;

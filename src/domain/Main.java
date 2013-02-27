@@ -15,8 +15,8 @@ public class Main {
 
     public static void main(String[] args) {
         Network net = new Network();
-        Connection c = new Connection(1, 10, 20, 1, 3, 100);
-        Dijkstra dij = new Dijkstra(net);
+        Connection c = new Connection(1, 10, 20, 1, 3, -2);
+        Dijkstra dij = new Dijkstra(net, c);
         dij.execute(net.getRouter(c.getSource()));
         LinkedList<Router> path = dij.getPath(net.getRouter(c.getDestination()));
         for (Router r : path) {
