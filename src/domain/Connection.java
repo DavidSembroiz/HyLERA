@@ -1,5 +1,7 @@
 package domain;
 
+import java.util.List;
+
 public class Connection {
 
 	private int id;
@@ -9,6 +11,7 @@ public class Connection {
 	private int destination;
 	private int fiber;
 	private int lambda;
+        private List<Router> path;
 	
 	public Connection(int id, int timeToLive, double bandwidth, int source, int destination, int lambda) {
 		this.id = id;
@@ -61,4 +64,13 @@ public class Connection {
 	public void setLambda(int lambda) {
 		this.lambda = lambda;
 	}
+
+        public List<Router> getPath() {
+            return path;
+        }
+
+        public void setPath(List<Router> path) {
+            this.path = path;
+        }
+        
 }

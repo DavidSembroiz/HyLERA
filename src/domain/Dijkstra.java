@@ -141,7 +141,9 @@ public class Dijkstra {
         return Integer.MAX_VALUE;
     }
     
-    public void decreaseWeights() {
+    // Review the navigation to see if another function is needed
+    
+    public void decreaseBandwidths() {
         LinkedList<Router> p = getPath(net.getRouter(c.getDestination()));
         Router source = null;
         if (p != null) {
@@ -149,7 +151,10 @@ public class Dijkstra {
             while (!p.isEmpty()) {
                 Router destination = p.remove();
                 int f = net.findFiber(source.getId(), destination.getId());
-                net.getFiber(f).decreaseWeight(c.getBandwidth(), c.getLambda());
+                net.getFiber(f).decreaseBandwidth(c.getBandwidth(), c.getLambda());
+                net.getFiber(f).actualizeLambdaWeight(c.getLambda(),
+                        net.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
+                        net.getFiber(f).getTotalBandwidth());
                 source = destination;
             }
         }  

@@ -31,7 +31,7 @@ public class Lambda {
 		this.residualBandwidth = residualBandwidth;
 	}
 
-        public void decreaseWeight(double bandwidth) {
+        public void decreaseBandwidth(double bandwidth) {
             this.residualBandwidth -= bandwidth;
         }
 }

@@ -15,6 +15,7 @@ public class Network {
         }
         
 	private void generateNetwork() {
+            enrutedConnections = new ArrayList<>();
             generateFibers();
             generateRouters();
             generateLambdas();
@@ -221,5 +222,20 @@ public class Network {
                     return fib.getId();
             }
             return -10;
+        }
+
+        public void addEnrutedConnection(Connection c) {
+            this.enrutedConnections.add(c);
+        }
+        
+        public void decreaseTimesToLive() {
+            for (Connection c : this.enrutedConnections) {
+                c.setTimeToLive(c.getTimeToLive() - 1);
+                if (c.getTimeToLive() == 0) {
+                    this.enrutedConnections.remove(c);
+                    // Add path actualization, increase residualBandwidth of
+                    // connection path and remove possible lightpaths
+                }
+            }
         }
 }
