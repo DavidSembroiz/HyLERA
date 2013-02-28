@@ -139,8 +139,8 @@ public class Network {
                 fibers.add(new Fiber(33, 5, 8, 48, 10000, 325));
                 fibers.add(new Fiber(34, 7, 8, 64, 10000, 170));
                 fibers.add(new Fiber(35, 7, 14, 32, 10000, 620));
-                fibers.add(new Fiber(36, 12, 14, 48, 10000, 580));
-                fibers.add(new Fiber(37, 7, 12, 32, 10000, 360));
+                fibers.add(new Fiber(36, 7, 12, 48, 10000, 580));
+                fibers.add(new Fiber(37, 12, 14, 32, 10000, 360));
                 fibers.add(new Fiber(38, 10, 12, 64, 10000, 750));
                 fibers.add(new Fiber(39, 6, 10, 48, 10000, 440));
                 fibers.add(new Fiber(40, 2, 10, 32, 10000, 1150));
