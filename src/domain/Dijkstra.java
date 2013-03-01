@@ -42,7 +42,6 @@ public class Dijkstra {
 
     }
     
-    
     public void execute(Router source, Connection c) {
         this.c = c;
         settledRouters = new HashSet<>();
@@ -57,6 +56,7 @@ public class Dijkstra {
             unsettledRouters.remove(node);
             findMinimalDistance(node);
         }
+        this.decreaseBandwidths();
     }
     
     private void findMinimalDistance(Router node) {
@@ -147,6 +147,7 @@ public class Dijkstra {
         LinkedList<Router> p = getPath(net.getRouter(c.getDestination()));
         Router source = null;
         if (p != null) {
+            net.addEnrutedConnection(c);
             source = p.remove();
             while (!p.isEmpty()) {
                 Router destination = p.remove();
@@ -159,6 +160,7 @@ public class Dijkstra {
             }
         }  
     }
+    
     
     public LinkedList<Router> getPath(Router node) {
         LinkedList<Router> path = new LinkedList<>();

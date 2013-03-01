@@ -1,13 +1,16 @@
 package domain;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public class Network {
 
 	private List<Router> routers;
 	private List<Fiber> fibers;
-	private List<Connection> enrutedConnections;
+	private Set<Connection> enrutedConnections;
 	
 	
         public Network() {
@@ -15,7 +18,7 @@ public class Network {
         }
         
 	private void generateNetwork() {
-            enrutedConnections = new ArrayList<>();
+            enrutedConnections = new HashSet<>();
             generateFibers();
             generateRouters();
             generateLambdas();
@@ -227,12 +230,25 @@ public class Network {
         public void addEnrutedConnection(Connection c) {
             this.enrutedConnections.add(c);
         }
+
+        public Set<Connection> getEnrutedConnections() {
+            return enrutedConnections;
+        }
+
+        public void setEnrutedConnections(Set<Connection> enrutedConnections) {
+            this.enrutedConnections = enrutedConnections;
+        }
         
         public void decreaseTimesToLive() {
-            for (Connection c : this.enrutedConnections) {
-                c.setTimeToLive(c.getTimeToLive() - 1);
-                if (c.getTimeToLive() == 0) {
-                    this.enrutedConnections.remove(c);
+            System.out.println(this.enrutedConnections);
+            if (this.enrutedConnections.isEmpty()) return;
+            Connection con;
+            Iterator<Connection> it = this.enrutedConnections.iterator(); 
+            while (it.hasNext()){
+                con = it.next();
+                con.setTimeToLive(con.getTimeToLive() - 1);
+                if (con.getTimeToLive() == 0) {
+                    it.remove();
                     // Add path actualization, increase residualBandwidth of
                     // connection path and remove possible lightpaths
                 }
