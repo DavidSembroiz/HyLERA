@@ -1,5 +1,6 @@
 package domain;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class Connection {
@@ -11,7 +12,7 @@ public class Connection {
 	private int destination;
 	private int fiber;
 	private int lambda;
-        private List<Router> path;
+        private LinkedList<Router> path;
 	
 	public Connection(int id, int timeToLive, double bandwidth, int source, int destination, int lambda) {
 		this.id = id;
@@ -65,11 +66,11 @@ public class Connection {
 		this.lambda = lambda;
 	}
 
-        public List<Router> getPath() {
+        public LinkedList<Router> getPath() {
             return path;
         }
 
-        public void setPath(List<Router> path) {
+        public void setPath(LinkedList<Router> path) {
             this.path = path;
         }
         

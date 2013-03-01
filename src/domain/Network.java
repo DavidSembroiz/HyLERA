@@ -3,6 +3,7 @@ package domain;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ public class Network {
 	private List<Router> routers;
 	private List<Fiber> fibers;
 	private Set<Connection> enrutedConnections;
+        private int blocking;
 	
 	
         public Network() {
@@ -19,6 +21,7 @@ public class Network {
         
 	private void generateNetwork() {
             enrutedConnections = new HashSet<>();
+            blocking = 0;
             generateFibers();
             generateRouters();
             generateLambdas();
@@ -168,16 +171,13 @@ public class Network {
             for (Fiber fib : fibers) {
                 List<Lambda> l = new ArrayList<>();
                 for (int i = 0; i < fib.getNumLambdas(); ++i) {
-                    l.add(new Lambda(i + 1, fib.getTotalBandwidth(), 
-                                   assignWeight(fib.getTotalBandwidth(), 
-                                                fib.getTotalBandwidth())));
+                    Lambda lamb = new Lambda(i + 1);
+                    lamb.setResidualBandwidth(fib.getTotalBandwidth());
+                    lamb.actualizeWeight(fib.getTotalBandwidth(), fib.getTotalBandwidth());
+                    l.add(lamb);
                 }
                 fib.setLambdas(l);
             }
-        }
-        
-        private double assignWeight(double residual, double total) {
-            return 1./(residual*Math.log10(total));
         }
 
         private List<Integer> generateAttachedFibers(int i) {
@@ -227,9 +227,9 @@ public class Network {
             return -10;
         }
 
-        public void addEnrutedConnection(Connection c) {
+        /*public void addEnrutedConnection(Connection c) {
             this.enrutedConnections.add(c);
-        }
+        }*/
 
         public Set<Connection> getEnrutedConnections() {
             return enrutedConnections;
@@ -239,8 +239,11 @@ public class Network {
             this.enrutedConnections = enrutedConnections;
         }
         
+        public int getBlocking() {
+            return blocking;
+        }
+        
         public void decreaseTimesToLive() {
-            System.out.println(this.enrutedConnections);
             if (this.enrutedConnections.isEmpty()) return;
             Connection con;
             Iterator<Connection> it = this.enrutedConnections.iterator(); 
@@ -248,10 +251,46 @@ public class Network {
                 con = it.next();
                 con.setTimeToLive(con.getTimeToLive() - 1);
                 if (con.getTimeToLive() == 0) {
+                    increaseBandwidths(con);
                     it.remove();
-                    // Add path actualization, increase residualBandwidth of
-                    // connection path and remove possible lightpaths
+                    // Remove possible lightpaths
                 }
+            }
+        }
+        
+        public void decreaseBandwidths(Connection c) {
+            LinkedList<Router> path = c.getPath();
+            Router source;
+            if (path == null) ++blocking;
+            else {
+                this.enrutedConnections.add(c);
+                Iterator<Router> it = path.iterator();
+                source = it.next();
+                while (it.hasNext()) {
+                    Router destination = it.next();
+                    int f = this.findFiber(source.getId(), destination.getId());
+                    this.getFiber(f).decreaseBandwidth(c.getBandwidth(), c.getLambda());
+                    this.getFiber(f).actualizeLambdaWeight(c.getLambda(),
+                            this.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
+                            this.getFiber(f).getTotalBandwidth());
+                    source = destination;
+                }
+            }
+        }
+        
+        public void increaseBandwidths(Connection c) {
+            LinkedList<Router> path = c.getPath();
+            Router source;
+            Iterator<Router> it = path.iterator();
+            source = it.next();
+            while (it.hasNext()) {
+                Router destination = it.next();
+                int f = this.findFiber(source.getId(), destination.getId());
+                this.getFiber(f).increaseBandwidth(c.getBandwidth(), c.getLambda());
+                this.getFiber(f).actualizeLambdaWeight(c.getLambda(),
+                        this.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
+                        this.getFiber(f).getTotalBandwidth());
+                source = destination;
             }
         }
 }

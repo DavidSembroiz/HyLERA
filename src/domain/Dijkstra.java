@@ -39,11 +39,10 @@ public class Dijkstra {
             }
         }
         return lambdas;
-
     }
     
-    public void execute(Router source, Connection c) {
-        this.c = c;
+    public void execute(Router source, Connection con) {
+        this.c = con;
         settledRouters = new HashSet<>();
         unsettledRouters = new HashSet<>();
         distance = new HashMap<>();
@@ -56,7 +55,8 @@ public class Dijkstra {
             unsettledRouters.remove(node);
             findMinimalDistance(node);
         }
-        this.decreaseBandwidths();
+        c.setPath(this.getPath(net.getRouter(c.getDestination())));
+        net.decreaseBandwidths(c);
     }
     
     private void findMinimalDistance(Router node) {
@@ -141,26 +141,7 @@ public class Dijkstra {
         return Integer.MAX_VALUE;
     }
     
-    // Review the navigation to see if another function is needed
-    
-    public void decreaseBandwidths() {
-        LinkedList<Router> p = getPath(net.getRouter(c.getDestination()));
-        Router source = null;
-        if (p != null) {
-            net.addEnrutedConnection(c);
-            source = p.remove();
-            while (!p.isEmpty()) {
-                Router destination = p.remove();
-                int f = net.findFiber(source.getId(), destination.getId());
-                net.getFiber(f).decreaseBandwidth(c.getBandwidth(), c.getLambda());
-                net.getFiber(f).actualizeLambdaWeight(c.getLambda(),
-                        net.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
-                        net.getFiber(f).getTotalBandwidth());
-                source = destination;
-            }
-        }  
-    }
-    
+    // This method should be private. For now is public to test from the main
     
     public LinkedList<Router> getPath(Router node) {
         LinkedList<Router> path = new LinkedList<>();

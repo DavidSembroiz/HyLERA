@@ -69,7 +69,11 @@ public class Fiber {
             lambdas.get(lambda - 1).decreaseBandwidth(bandwidth);
         }
         
+        public void increaseBandwidth(double bandwidth, int lambda) {
+            lambdas.get(lambda - 1).increaseBandwidth(bandwidth);
+        }
+        
         public void actualizeLambdaWeight(int lambda, double residual, double total) {
-            this.lambdas.get(lambda - 1).setWeight(1./(residual*Math.log10(total)));
+            this.lambdas.get(lambda - 1).actualizeWeight(residual, total);
         }
 }

@@ -6,6 +6,10 @@ public class Lambda {
 	private double residualBandwidth;
         private double weight;
         
+        public Lambda(int id) {
+            this.id = id;
+        }
+        
         public Lambda(int id, double residualBandwidth, double weight) {
             this.id = id;
             this.residualBandwidth = residualBandwidth;
@@ -18,6 +22,9 @@ public class Lambda {
         public void setWeight(double weight) {
             this.weight = weight;
         }
+        public void actualizeWeight(double residual, double total) {
+            this.weight = 1./(residual*Math.log10(total));
+        } 
 	public int getId() {
 		return id;
 	}
@@ -33,5 +40,9 @@ public class Lambda {
 
         public void decreaseBandwidth(double bandwidth) {
             this.residualBandwidth -= bandwidth;
+        }
+        
+        public void increaseBandwidth(double bandwidth) {
+            this.residualBandwidth += bandwidth;
         }
 }
