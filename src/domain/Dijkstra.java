@@ -4,58 +4,60 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class Dijkstra {
+    
+    private final int PATH_NOT_FOUND = -3;
+    
     private final Network net;
     private Set<Router> settledRouters;
     private Set<Router> unsettledRouters;
+    private List<Integer> plausibleLambdas;
     private Map<Router, Router> predecessors;
     private Map<Router, Double> distance;
     private Connection c;
+    private boolean found;
     
     public Dijkstra(Network network) {
         net = network;
     }
     
-    public Set<Integer> getPlausibleLambdas() {
-        Set<Integer> lambdas = new HashSet<>();
-        Router source = net.getRouter(c.getSource());
-        List<Router> neighbors = this.getNeighbors(source);
-        List<Integer> attFibersId = source.getAttachedFibers();
-        List<Fiber> attFibers = new ArrayList<>();
-        for (Integer fib : attFibersId) {
-            attFibers.add(net.getFiber(fib));
-        }
-        for (Fiber fib : attFibers) {
-            List<Lambda> lam = fib.getLambdas();
-            for (Lambda l : lam) {
-                if (l.getResidualBandwidth() > c.getBandwidth()) {
-                    lambdas.add(l.getId());
-                }
-            }
-        }
-        return lambdas;
-    }
+    // Right now, the assignation of the lambda follows this sequence:
+    // we get all the possible lambdas for the fibers attached to the source router
+    // we iterate through all these lambdas and we assign the first that gives us
+    // a path to the destination. We may want to change that in order to get the
+    // lambda with the lowest weight?
+    
     
     public void execute(Router source, Connection con) {
         this.c = con;
-        settledRouters = new HashSet<>();
-        unsettledRouters = new HashSet<>();
-        distance = new HashMap<>();
-        predecessors = new HashMap<>();
-        distance.put(source, 0.);
-        unsettledRouters.add(source);
-        while (!unsettledRouters.isEmpty()) {
-            Router node = getMinimum(unsettledRouters);
-            settledRouters.add(node);
-            unsettledRouters.remove(node);
-            findMinimalDistance(node);
+        plausibleLambdas = net.getPlausibleLambdas(c);
+        found = false;
+        for (Iterator<Integer> it = plausibleLambdas.iterator(); !found && it.hasNext();) {
+            c.setLambda(it.next());
+            settledRouters = new HashSet<>();
+            unsettledRouters = new HashSet<>();
+            distance = new HashMap<>();
+            predecessors = new HashMap<>();
+            distance.put(source, 0.);
+            unsettledRouters.add(source);
+            while (!unsettledRouters.isEmpty()) {
+                Router node = getMinimum(unsettledRouters);
+                settledRouters.add(node);
+                unsettledRouters.remove(node);
+                findMinimalDistance(node);
+            }
+            if (this.getPath(net.getRouter(c.getDestination())) != null) {
+                found = true;
+                c.setPath(this.getPath(net.getRouter(c.getDestination())));
+            }
         }
-        c.setPath(this.getPath(net.getRouter(c.getDestination())));
+        if (!found) c.setLambda(PATH_NOT_FOUND);
         net.decreaseBandwidths(c);
     }
     

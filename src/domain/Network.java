@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 public class Network {
+    
+        private final int PATH_NOT_FOUND = -3;
 
 	private List<Router> routers;
 	private List<Fiber> fibers;
@@ -243,6 +245,45 @@ public class Network {
             return blocking;
         }
         
+        public List<Integer> getPlausibleLambdas(Connection c) {
+            List<Integer> lambdas = new ArrayList<>();
+            Router source = getRouter(c.getSource());
+            List<Integer> attFibersId = source.getAttachedFibers();
+            List<Fiber> attFibers = new ArrayList<>();
+            for (Integer fib : attFibersId) {
+                attFibers.add(getFiber(fib));
+            }
+            for (Fiber fib : attFibers) {
+                List<Lambda> lam = fib.getLambdas();
+                for (Lambda l : lam) {
+                    if (l.getResidualBandwidth() >= c.getBandwidth()) {
+                        if (!lambdas.contains(l.getId())) lambdas.add(l.getId());
+                    }
+                }
+            }
+            return lambdas;
+        }
+        
+        /*public Set<Integer> getPlausibleLambdas(Connection c) {
+            Set<Integer> lambdas = new HashSet<>();
+            Router source = getRouter(c.getSource());
+            List<Integer> attFibersId = source.getAttachedFibers();
+            List<Fiber> attFibers = new ArrayList<>();
+            for (Integer fib : attFibersId) {
+                attFibers.add(getFiber(fib));
+            }
+            for (Fiber fib : attFibers) {
+                List<Lambda> lam = fib.getLambdas();
+                for (Lambda l : lam) {
+                    if (l.getResidualBandwidth() >= c.getBandwidth()) {
+                        lambdas.add(l.getId());
+                    }
+                }
+            }
+            for (Integer i : lambdas) System.out.println(i);
+            return lambdas;
+        }*/
+        
         public void decreaseTimesToLive() {
             if (this.enrutedConnections.isEmpty()) return;
             Connection con;
@@ -261,7 +302,7 @@ public class Network {
         public void decreaseBandwidths(Connection c) {
             LinkedList<Router> path = c.getPath();
             Router source;
-            if (path == null) ++blocking;
+            if (c.getLambda() == PATH_NOT_FOUND) ++blocking;
             else {
                 this.enrutedConnections.add(c);
                 Iterator<Router> it = path.iterator();
