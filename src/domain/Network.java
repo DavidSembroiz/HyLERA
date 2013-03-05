@@ -15,6 +15,7 @@ public class Network {
 	private List<Fiber> fibers;
 	private Set<Connection> enrutedConnections;
         private int blocking;
+        private int numFibers;
 	
 	
         public Network() {
@@ -24,6 +25,7 @@ public class Network {
 	private void generateNetwork() {
             enrutedConnections = new HashSet<>();
             blocking = 0;
+            numFibers = 53;
             generateFibers();
             generateRouters();
             generateLambdas();
@@ -229,9 +231,6 @@ public class Network {
             return -10;
         }
 
-        /*public void addEnrutedConnection(Connection c) {
-            this.enrutedConnections.add(c);
-        }*/
 
         public Set<Connection> getEnrutedConnections() {
             return enrutedConnections;
@@ -264,26 +263,6 @@ public class Network {
             return lambdas;
         }
         
-        /*public Set<Integer> getPlausibleLambdas(Connection c) {
-            Set<Integer> lambdas = new HashSet<>();
-            Router source = getRouter(c.getSource());
-            List<Integer> attFibersId = source.getAttachedFibers();
-            List<Fiber> attFibers = new ArrayList<>();
-            for (Integer fib : attFibersId) {
-                attFibers.add(getFiber(fib));
-            }
-            for (Fiber fib : attFibers) {
-                List<Lambda> lam = fib.getLambdas();
-                for (Lambda l : lam) {
-                    if (l.getResidualBandwidth() >= c.getBandwidth()) {
-                        lambdas.add(l.getId());
-                    }
-                }
-            }
-            for (Integer i : lambdas) System.out.println(i);
-            return lambdas;
-        }*/
-        
         public void decreaseTimesToLive() {
             if (this.enrutedConnections.isEmpty()) return;
             Connection con;
@@ -307,6 +286,7 @@ public class Network {
                 this.enrutedConnections.add(c);
                 Iterator<Router> it = path.iterator();
                 source = it.next();
+                
                 while (it.hasNext()) {
                     Router destination = it.next();
                     int f = this.findFiber(source.getId(), destination.getId());
@@ -316,6 +296,7 @@ public class Network {
                             this.getFiber(f).getTotalBandwidth());
                     source = destination;
                 }
+                createLightpath(c, c.getSource(), c.getDestination(), 200000);
             }
         }
         
@@ -333,5 +314,19 @@ public class Network {
                         this.getFiber(f).getTotalBandwidth());
                 source = destination;
             }
+        }
+        
+        public void createLightpath(Connection c, int source, int destination, double bw) {
+            Fiber f = new Fiber(++numFibers, source, destination,
+                                1, bw, 0); // Length of a lightpath ???
+            fibers.add(f);
+            Lambda l = new Lambda(-c.getLambda(), bw - c.getBandwidth(), 0);
+            l.actualizeWeight(bw - c.getBandwidth(), bw);
+            List<Lambda> lams = new ArrayList<>();
+            lams.add(l);
+            f.setLambdas(lams);
+            routers.get(source - 1).addAttachedFiber(numFibers);
+            routers.get(destination - 1).addAttachedFiber(numFibers);
+            c.setLightpathFiber(numFibers);
         }
 }

@@ -4,8 +4,7 @@
  */
 package domain;
 
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.List;
 
 /**
  *
@@ -13,20 +12,24 @@ import java.util.Set;
  */
 public class Main {
     
-    private static int TOTAL_STEPS = 1000;
+    private static int TOTAL_STEPS = 1;
     
     
     public static void main(String[] args) {
         
         int step = 0;
         Network net = new Network();
-        Connection c;
+        Connection c, c2;
         Dijkstra dij = new Dijkstra(net);
         while (step < TOTAL_STEPS) {
             net.decreaseTimesToLive();
-            c = new Connection(step + 1, 16, 10000, 1, 24);
+            c = new Connection(step + 1, 16, 2500, 1, 2);
+            c2 = new Connection(step + 1, 16, 2500, 1, 2);
             dij.execute(net.getRouter(c.getSource()), c);
-            System.out.println("Chosen lambda: " + c.getLambda());
+            dij.execute(net.getRouter(c2.getSource()), c2);
+            c.printPath();
+            //c2.printPath();
+            //System.out.println("Chosen lambda: " + c.getLambda());
             ++step;
         }
         //net.printNetwork();

@@ -1,5 +1,6 @@
 package domain;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Connection {
@@ -12,6 +13,7 @@ public class Connection {
 	private int fiber;
 	private int lambda;
         private LinkedList<Router> path;
+        private int lightpathFiber;
         
         public Connection(int id, int timeToLive, double bandwidth, int source, int destination) {
 		this.id = id;
@@ -29,6 +31,12 @@ public class Connection {
 		this.destination = destination;
 		this.lambda = lambda;
 	}
+        
+        public void printPath() {
+            for (Iterator<Router> it = path.iterator(); it.hasNext();) {
+                System.out.println(it.next().getName());
+            }
+        }
 	
 	public int getId() {
 		return id;
@@ -80,5 +88,10 @@ public class Connection {
         public void setPath(LinkedList<Router> path) {
             this.path = path;
         }
-        
+        public int getLightpathFiber() {
+            return lightpathFiber;
+        }
+        public void setLightpathFiber(int id) {
+            this.lightpathFiber = id;
+        }
 }

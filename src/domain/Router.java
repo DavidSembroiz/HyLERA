@@ -44,4 +44,8 @@ public class Router {
         public List<Integer> getAttachedFibers() {
             return attachedFibers;
         }
+        
+        public void addAttachedFiber(int id) {
+            this.attachedFibers.add(id);
+        }
 }
