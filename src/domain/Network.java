@@ -316,6 +316,42 @@ public class Network {
             }
         }
         
+        /* Manejo de Lightpaths:
+         * 
+         * Se encuentra un camino para una conexion (formado por los routers junto con la lambda de la conexion permiten encontrar el camino exacto).
+         * Para encontrar el camino hay que cambiar varias cosas a la implementacion actual:
+         *     - Mirar primero si existe un lightpath que permita hacer todo el recorrido.
+         *     - Si no se puede, se ejecuta Dijkstra pero hay que cambiar alguna condicion:
+         *           - Cuando tenemos una fibra, miramos si  la lambda de la conexion puede pasar por esa fibra o
+         *             si existe un lightpath para llegar a otro vecino (lambda = -lambda del lightpath)
+         * De este modo encontraremos un camino de fibers originales con fibers creadas.
+         * Se decrementan los pesos de todas las fibras intermedias:
+         *     - Si se trata de una fibra original, se pone la lambda a 0.
+         *     - Si se trata de una fibra creada (lightpath), ???????????.
+         * Mientras se hace el proceso de arriba, hay que tener siempre actualizado lo siguiente:
+         *     - Bandwidth total menor de todo el camino (para asignarlo como bandwidth total del lightpath)
+         *     - Primer nodo (router) que es source de una fibra original
+         *     - Ultimo nodo (router) que es destination de una fibra original
+         * Una vez se tiene todo esto, se crea la nueva fibra y su lambda, se asignan todos sus valores y se
+         * guarda en una nueva variable "lightpath" en Connection.
+         * 
+         * Cuando la conexion tiene que ser eliminada, se debe deshacer todo lo anterior del siguiente modo:
+         *     - Se aumenta el bw de la fibra que habia sido creada por esa conexion. Si al aumentar el bw
+         *       se observa que todo el bw esta disponible (no hay mas conexiones usando esa fibra), se elimina la fibra del conjunto
+         *       y se desasigna de los routers source y destination.
+         *     - Se recorre todo el path aumentando los residual bw de las lambdas de 0 al total para marcarlas como libres otra vez.
+         * 
+         * 
+         * 
+         * Falta concretar que se tiene que hacer cuando encuentras un camino que contiene un lightpath pero a la hora de crear
+         * el nuevo lightpath, este no se usa y por lo tanto no se le deberia decrementar el residual bw.
+         * 
+         * Falta concretar la longitud del nuevo lightpath, sería la suma de todo el camino?
+         * 
+         * 
+         */
+        
+        
         public void createLightpath(Connection c, int source, int destination, double bw) {
             Fiber f = new Fiber(++numFibers, source, destination,
                                 1, bw, 0); // Length of a lightpath ???
