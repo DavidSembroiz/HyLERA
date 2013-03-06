@@ -33,32 +33,46 @@ public class Dijkstra {
     // a path to the destination. We may want to change that in order to get the
     // lambda with the lowest weight?
     
+    /*
+     * Igual es necesario cambiar algo del if inicial porque si una conexion es asignada
+     * a un lightpath sin saber el camino real del lightpath, puede ser que cuando se
+     * vayan eliminando las conexiones, al final se quede un lightpath con conexiones que
+     * no contienen el camino real, sin posibilidad de aumentar los bws cuando se vacie.
+     */
+    
     
     public void execute(Router source, Connection con) {
         this.c = con;
         plausibleLambdas = net.getPlausibleLambdas(c);
         found = false;
-        for (Iterator<Integer> it = plausibleLambdas.iterator(); !found && it.hasNext();) {
-            c.setLambda(it.next());
-            settledRouters = new HashSet<>();
-            unsettledRouters = new HashSet<>();
-            distance = new HashMap<>();
-            predecessors = new HashMap<>();
-            distance.put(source, 0.);
-            unsettledRouters.add(source);
-            while (!unsettledRouters.isEmpty()) {
-                Router node = getMinimum(unsettledRouters);
-                settledRouters.add(node);
-                unsettledRouters.remove(node);
-                findMinimalDistance(node);
-            }
-            if (this.getPath(net.getRouter(c.getDestination())) != null) {
-                found = true;
-                c.setPath(this.getPath(net.getRouter(c.getDestination())));
-            }
+        Fiber lp;
+        lp = net.lightpathAvailable(c);
+        if (lp != null) {
+            net.assignLightpath(c, lp);
         }
-        if (!found) c.setLambda(PATH_NOT_FOUND);
-        net.decreaseBandwidths(c);
+        else {
+            for (Iterator<Integer> it = plausibleLambdas.iterator(); !found && it.hasNext();) {
+                c.setLambda(it.next());
+                settledRouters = new HashSet<>();
+                unsettledRouters = new HashSet<>();
+                distance = new HashMap<>();
+                predecessors = new HashMap<>();
+                distance.put(source, 0.);
+                unsettledRouters.add(source);
+                while (!unsettledRouters.isEmpty()) {
+                    Router node = getMinimum(unsettledRouters);
+                    settledRouters.add(node);
+                    unsettledRouters.remove(node);
+                    findMinimalDistance(node);
+                }
+                if (this.getPath(net.getRouter(c.getDestination())) != null) {
+                    found = true;
+                    c.setPath(this.getPath(net.getRouter(c.getDestination())));
+                }
+            }
+            if (!found) c.setLambda(PATH_NOT_FOUND);
+            net.decreaseBandwidths(c);
+        }
     }
     
     private void findMinimalDistance(Router node) {
@@ -108,7 +122,8 @@ public class Dijkstra {
             lambdas = fib.getLambdas();
             insert = false;
             for (Lambda lam : lambdas) {
-                if (lam.getId() == c.getLambda() && 
+                if ((-lam.getId() == c.getLambda() ||
+                    lam.getId() == c.getLambda()) && 
                     lam.getResidualBandwidth() >= c.getBandwidth()) {
                     insert = true;
                 }

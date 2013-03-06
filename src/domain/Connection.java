@@ -33,8 +33,13 @@ public class Connection {
 	}
         
         public void printPath() {
-            for (Iterator<Router> it = path.iterator(); it.hasNext();) {
-                System.out.println(it.next().getName());
+            if (this.lambda == -3) {
+                System.out.println("Path not found");
+            }
+            else {
+                for (Iterator<Router> it = path.iterator(); it.hasNext();) {
+                    System.out.println(it.next().getName());
+                }
             }
         }
 	
@@ -93,5 +98,11 @@ public class Connection {
         }
         public void setLightpathFiber(int id) {
             this.lightpathFiber = id;
+        }
+        
+        public void printConnection() {
+            System.out.println("Connection id: " + this.id);
+            System.out.println("Lambda: " + this.lambda);
+            System.out.println("LightPath Fiber: " + this.lightpathFiber);
         }
 }

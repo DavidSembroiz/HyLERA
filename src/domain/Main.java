@@ -19,16 +19,31 @@ public class Main {
         
         int step = 0;
         Network net = new Network();
-        Connection c, c2;
+        Connection c, c2, c3, c4, c5;
         Dijkstra dij = new Dijkstra(net);
         while (step < TOTAL_STEPS) {
             net.decreaseTimesToLive();
-            c = new Connection(step + 1, 16, 2500, 1, 2);
-            c2 = new Connection(step + 1, 16, 2500, 1, 2);
+            c = new Connection(step + 1, 16, 310, 1, 3);
+            /*c2 = new Connection(step + 2, 16, 310, 1, 3);
+            c3 = new Connection(step + 3, 16, 310, 1, 3);
+            c4 = new Connection(step + 4, 16, 310, 1, 2);
+            c5 = new Connection(step + 4, 16, 200000, 1, 2);*/
+            
             dij.execute(net.getRouter(c.getSource()), c);
-            dij.execute(net.getRouter(c2.getSource()), c2);
+            /*dij.execute(net.getRouter(c2.getSource()), c2);
+            dij.execute(net.getRouter(c3.getSource()), c3);
+            dij.execute(net.getRouter(c4.getSource()), c4);
+            dij.execute(net.getRouter(c5.getSource()), c5);*/
             c.printPath();
-            //c2.printPath();
+            c.printConnection();
+            /*c2.printPath();
+            c2.printConnection();
+            c3.printPath();
+            c3.printConnection();
+            c4.printPath();
+            c4.printConnection();
+            c5.printPath();
+            c5.printConnection();*/
             //System.out.println("Chosen lambda: " + c.getLambda());
             ++step;
         }

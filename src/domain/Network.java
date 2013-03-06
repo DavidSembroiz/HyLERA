@@ -13,6 +13,7 @@ public class Network {
 
 	private List<Router> routers;
 	private List<Fiber> fibers;
+        private List<Fiber> lightpaths;
 	private Set<Connection> enrutedConnections;
         private int blocking;
         private int numFibers;
@@ -70,6 +71,7 @@ public class Network {
 	
 	private void generateRouters() {
                 routers = new ArrayList<>();
+                lightpaths = new ArrayList<>();
 		routers.add(new Router(1, "PT", generateAttachedFibers(1)));
 		routers.add(new Router(2, "ES", generateAttachedFibers(2)));
 		routers.add(new Router(3, "IS", generateAttachedFibers(3)));
@@ -290,10 +292,12 @@ public class Network {
                 while (it.hasNext()) {
                     Router destination = it.next();
                     int f = this.findFiber(source.getId(), destination.getId());
-                    this.getFiber(f).decreaseBandwidth(c.getBandwidth(), c.getLambda());
+                    this.getFiber(f).decreaseBandwidth(this.getFiber(f).getTotalBandwidth(), c.getLambda());
+                    //this.getFiber(f).decreaseBandwidth(c.getBandwidth(), c.getLambda());
                     this.getFiber(f).actualizeLambdaWeight(c.getLambda(),
                             this.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
                             this.getFiber(f).getTotalBandwidth());
+                    System.out.println(this.getFiber(f).getLambda(c.getLambda()).getWeight());
                     source = destination;
                 }
                 createLightpath(c, c.getSource(), c.getDestination(), 200000);
@@ -352,10 +356,41 @@ public class Network {
          */
         
         
+        
+        /*
+         * Igual hay necesidad de modificar esta funcion si es necesario asociar
+         * una lambda con un lightpath o si es posible que un mismo lightpath lleve
+         * diferentes lambdas.
+         * De momento tiene en cuenta que source y destino sean el mismo, que haya BW
+         * disponible y que la lambda de la conexion sea igual que la del lightpath
+         */
+        
+        public Fiber lightpathAvailable(Connection c) {
+            for (Fiber f : lightpaths) {
+                if ((f.getNode1() == c.getSource() && f.getNode2() == c.getDestination()
+                    || (f.getNode2() == c.getSource() && f.getNode1() == c.getDestination()))
+                    && f.getLambdas().get(0).getResidualBandwidth() >= c.getBandwidth())
+                    return f;
+            }
+            return null;
+        }
+        
+        public void assignLightpath(Connection c, Fiber f) {
+            LinkedList<Router> rp;
+            rp = new LinkedList<>();
+            rp.add(getRouter(c.getSource()));
+            rp.add(getRouter(c.getDestination()));
+            c.setPath(rp);
+            c.setLambda(-f.getLambdas().get(0).getId());
+            c.setLightpathFiber(f.getId());
+            f.getLambdas().get(0).decreaseBandwidth(c.getBandwidth());
+        }
+        
+        
         public void createLightpath(Connection c, int source, int destination, double bw) {
             Fiber f = new Fiber(++numFibers, source, destination,
                                 1, bw, 0); // Length of a lightpath ???
-            fibers.add(f);
+            
             Lambda l = new Lambda(-c.getLambda(), bw - c.getBandwidth(), 0);
             l.actualizeWeight(bw - c.getBandwidth(), bw);
             List<Lambda> lams = new ArrayList<>();
@@ -364,5 +399,7 @@ public class Network {
             routers.get(source - 1).addAttachedFiber(numFibers);
             routers.get(destination - 1).addAttachedFiber(numFibers);
             c.setLightpathFiber(numFibers);
+            fibers.add(f);
+            lightpaths.add(f);
         }
 }
