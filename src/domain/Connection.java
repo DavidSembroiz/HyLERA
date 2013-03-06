@@ -1,5 +1,8 @@
 package domain;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+
 public class Connection {
 
 	private int id;
@@ -7,7 +10,9 @@ public class Connection {
 	private double bandwidth;
 	private int source;
 	private int destination;
+	private int fiber;
 	private int lambda;
+        private LinkedList<Router> path;
         private int lightpathFiber;
         
         public Connection(int id, int timeToLive, double bandwidth, int source, int destination) {
@@ -27,7 +32,7 @@ public class Connection {
 		this.lambda = lambda;
 	}
         
-        /*public void printPath() {
+        public void printPath() {
             if (this.lambda == -3) {
                 System.out.println("Path not found");
             }
@@ -36,7 +41,7 @@ public class Connection {
                     System.out.println(it.next().getName());
                 }
             }
-        }*/
+        }
 	
 	public int getId() {
 		return id;
@@ -68,12 +73,26 @@ public class Connection {
 	public void setDestination(int destination) {
 		this.destination = destination;
 	}
+	public int getFiber() {
+		return fiber;
+	}
+	public void setFiber(int fiber) {
+		this.fiber = fiber;
+	}
 	public int getLambda() {
 		return lambda;
 	}
 	public void setLambda(int lambda) {
 		this.lambda = lambda;
 	}
+
+        public LinkedList<Router> getPath() {
+            return path;
+        }
+
+        public void setPath(LinkedList<Router> path) {
+            this.path = path;
+        }
         public int getLightpathFiber() {
             return lightpathFiber;
         }

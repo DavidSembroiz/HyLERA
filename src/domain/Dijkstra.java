@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class Dijkstra {
     
-    private final int PATH_NOT_FOUND = -9999;
+    private final int PATH_NOT_FOUND = -3;
     
     private final Network net;
     private Set<Router> settledRouters;
@@ -42,16 +42,15 @@ public class Dijkstra {
     
     
     public void execute(Router source, Connection con) {
-        LinkedList<Router> res = null;
         this.c = con;
+        plausibleLambdas = net.getPlausibleLambdas(c);
         found = false;
-        Lightfiber lp;
+        Fiber lp;
         lp = net.lightpathAvailable(c);
-        /*if (lp != null) {
+        if (lp != null) {
             net.assignLightpath(c, lp);
         }
-        else {*/
-            plausibleLambdas = net.getPlausibleLambdas(c);
+        else {
             for (Iterator<Integer> it = plausibleLambdas.iterator(); !found && it.hasNext();) {
                 c.setLambda(it.next());
                 settledRouters = new HashSet<>();
@@ -68,12 +67,11 @@ public class Dijkstra {
                 }
                 if (this.getPath(net.getRouter(c.getDestination())) != null) {
                     found = true;
-                    res = this.getPath(net.getRouter(c.getDestination()));
-                    //c.setPath(this.getPath(net.getRouter(c.getDestination())));
+                    c.setPath(this.getPath(net.getRouter(c.getDestination())));
                 }
-           // }
+            }
             if (!found) c.setLambda(PATH_NOT_FOUND);
-            net.decreaseBandwidths(c, res);
+            net.decreaseBandwidths(c);
         }
     }
     
