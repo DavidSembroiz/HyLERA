@@ -274,7 +274,8 @@ public class Network {
                 con = it.next();
                 con.setTimeToLive(con.getTimeToLive() - 1);
                 if (con.getTimeToLive() == 0) {
-                    increaseBandwidths(con);
+                    increaseLightpath(con);
+                    //increaseBandwidths(con);
                     it.remove();
                 }
             }
@@ -317,7 +318,7 @@ public class Network {
                         this.getFiber(f).getTotalBandwidth());
                 source = destination;
             }
-            increaseLightpath(c);
+            //increaseLightpath(c);
         }
         
         /* Manejo de Lightpaths:
@@ -425,7 +426,10 @@ public class Network {
                     }
                 }
             }
-            if (delete) deleteLightpath(c);
+            if (delete) {
+                increaseBandwidths(c);
+                deleteLightpath(c);
+            }
             /*for (Fiber f : this.lightpaths) {
                 if (f.getId() == c.getLightpathFiber()) {
                     f.increaseLightpathBandwidth(c.getBandwidth());
