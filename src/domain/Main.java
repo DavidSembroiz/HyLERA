@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class Main {
     
-    private static int TOTAL_STEPS = 1;
+    private static int TOTAL_STEPS = 1000;
     
     
     public static void main(String[] args) {
