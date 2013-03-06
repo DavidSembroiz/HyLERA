@@ -298,12 +298,12 @@ public class Network {
                             this.getFiber(f).getTotalBandwidth());
                     source = destination;
                 }
-                createLightpath(c, c.getSource(), c.getDestination(), 3100);
+                createLightpath(c, c.getSource(), c.getDestination(), 3099);
             }
         }
         
         public void increaseBandwidths(Connection c) {
-            /*LinkedList<Router> path = c.getPath();
+            LinkedList<Router> path = c.getPath();
             Router source;
             Iterator<Router> it = path.iterator();
             source = it.next();
@@ -315,7 +315,7 @@ public class Network {
                         this.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
                         this.getFiber(f).getTotalBandwidth());
                 source = destination;
-            }*/
+            }
             increaseLightpath(c);
         }
         
@@ -412,22 +412,36 @@ public class Network {
         }
         
         public void increaseLightpath(Connection c) {
-            for (Fiber f : this.lightpaths) {
+            Iterator<Fiber> it = this.lightpaths.iterator();
+            boolean delete = false;
+            while(it.hasNext()) {
+                Fiber f = it.next();
+                if (f.getId() == c.getLightpathFiber()) {
+                    f.increaseLightpathBandwidth(c.getBandwidth());
+                    if (f.getLightLambda().getResidualBandwidth() == f.getTotalBandwidth()) {
+                        delete = true;
+                        //deleteLightpath(c);
+                    }
+                }
+            }
+            if (delete) deleteLightpath(c);
+            /*for (Fiber f : this.lightpaths) {
                 if (f.getId() == c.getLightpathFiber()) {
                     f.increaseLightpathBandwidth(c.getBandwidth());
                     if (f.getLightLambda().getResidualBandwidth() == f.getTotalBandwidth()) {
                         deleteLightpath(c);
                     }
                 }
-            }
+            }*/
         }   
         
         public void deleteLightpath(Connection c) {
             Router source = this.getRouter(c.getSource());
             Router destination = this.getRouter(c.getDestination());
             Fiber re = this.getFiber(c.getLightpathFiber());
-            source.getAttachedFibers().remove(re.getId());
-            destination.getAttachedFibers().remove(re.getId());
+            source.getAttachedFibers().remove((Integer)re.getId());
+            destination.getAttachedFibers().remove((Integer) re.getId());
             fibers.remove(re);
+            lightpaths.remove(re);
         }
 }
