@@ -10,6 +10,7 @@ import java.util.Set;
 public class Network {
     
         private final int PATH_NOT_FOUND = -3;
+        private final int ORIGINAL_FIBERS = 53;
 
 	private List<Router> routers;
 	private List<Fiber> fibers;
@@ -252,7 +253,7 @@ public class Network {
             List<Integer> attFibersId = source.getAttachedFibers();
             List<Fiber> attFibers = new ArrayList<>();
             for (Integer fib : attFibersId) {
-                attFibers.add(getFiber(fib));
+                if(fib <= ORIGINAL_FIBERS) attFibers.add(getFiber(fib));
             }
             for (Fiber fib : attFibers) {
                 List<Lambda> lam = fib.getLambdas();
@@ -298,7 +299,7 @@ public class Network {
                             this.getFiber(f).getTotalBandwidth());
                     source = destination;
                 }
-                createLightpath(c, c.getSource(), c.getDestination(), 3099);
+                createLightpath(c, c.getSource(), c.getDestination(), 3100);
             }
         }
         
