@@ -275,7 +275,6 @@ public class Network {
                 if (con.getTimeToLive() == 0) {
                     increaseBandwidths(con);
                     it.remove();
-                    // Remove possible lightpaths
                 }
             }
         }
@@ -297,27 +296,27 @@ public class Network {
                     this.getFiber(f).actualizeLambdaWeight(c.getLambda(),
                             this.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
                             this.getFiber(f).getTotalBandwidth());
-                    System.out.println(this.getFiber(f).getLambda(c.getLambda()).getWeight());
                     source = destination;
                 }
-                createLightpath(c, c.getSource(), c.getDestination(), 200000);
+                createLightpath(c, c.getSource(), c.getDestination(), 3100);
             }
         }
         
         public void increaseBandwidths(Connection c) {
-            LinkedList<Router> path = c.getPath();
+            /*LinkedList<Router> path = c.getPath();
             Router source;
             Iterator<Router> it = path.iterator();
             source = it.next();
             while (it.hasNext()) {
                 Router destination = it.next();
                 int f = this.findFiber(source.getId(), destination.getId());
-                this.getFiber(f).increaseBandwidth(c.getBandwidth(), c.getLambda());
+                this.getFiber(f).increaseBandwidth(this.getFiber(f).getTotalBandwidth(), c.getLambda());
                 this.getFiber(f).actualizeLambdaWeight(c.getLambda(),
                         this.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
                         this.getFiber(f).getTotalBandwidth());
                 source = destination;
-            }
+            }*/
+            increaseLightpath(c);
         }
         
         /* Manejo de Lightpaths:
@@ -376,14 +375,23 @@ public class Network {
         }
         
         public void assignLightpath(Connection c, Fiber f) {
-            LinkedList<Router> rp;
+            /*LinkedList<Router> rp;
             rp = new LinkedList<>();
             rp.add(getRouter(c.getSource()));
-            rp.add(getRouter(c.getDestination()));
-            c.setPath(rp);
+            rp.add(getRouter(c.getDestination()));*/
+            this.enrutedConnections.add(c);
+            c.setPath(findPath(f.getId()));
             c.setLambda(-f.getLambdas().get(0).getId());
             c.setLightpathFiber(f.getId());
             f.getLambdas().get(0).decreaseBandwidth(c.getBandwidth());
+            f.actualizeLightLambdaWeight(c.getLambda(), f.getLambdas().get(0).getResidualBandwidth(), f.getTotalBandwidth());
+        }
+        
+        public LinkedList<Router> findPath(int id) {
+            for (Connection c : this.enrutedConnections) {
+                if (c.getLightpathFiber() == id) return c.getPath();
+            }
+            return null;
         }
         
         
@@ -401,5 +409,25 @@ public class Network {
             c.setLightpathFiber(numFibers);
             fibers.add(f);
             lightpaths.add(f);
+        }
+        
+        public void increaseLightpath(Connection c) {
+            for (Fiber f : this.lightpaths) {
+                if (f.getId() == c.getLightpathFiber()) {
+                    f.increaseLightpathBandwidth(c.getBandwidth());
+                    if (f.getLightLambda().getResidualBandwidth() == f.getTotalBandwidth()) {
+                        deleteLightpath(c);
+                    }
+                }
+            }
+        }   
+        
+        public void deleteLightpath(Connection c) {
+            Router source = this.getRouter(c.getSource());
+            Router destination = this.getRouter(c.getDestination());
+            Fiber re = this.getFiber(c.getLightpathFiber());
+            source.getAttachedFibers().remove(re.getId());
+            destination.getAttachedFibers().remove(re.getId());
+            fibers.remove(re);
         }
 }
