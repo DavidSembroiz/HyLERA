@@ -46,6 +46,13 @@ public class Network {
             return fibers.get(id - 1);
         }
         
+        public Fiber getLightfiber(int id) {
+            for (Fiber f : fibers) {
+                if (f.getId() == id) return f;
+            }
+            return null;
+        }
+        
         Router getRouter(int id) {
             return routers.get(id - 1);
         }
@@ -247,6 +254,9 @@ public class Network {
             return blocking;
         }
         
+        // Check if a lightpath lambda can be used to get a path (should be yes)
+        // so maybe we want to introduce -fib to attFibers
+        
         public List<Integer> getPlausibleLambdas(Connection c) {
             List<Integer> lambdas = new ArrayList<>();
             Router source = getRouter(c.getSource());
@@ -254,12 +264,18 @@ public class Network {
             List<Fiber> attFibers = new ArrayList<>();
             for (Integer fib : attFibersId) {
                 if(fib <= ORIGINAL_FIBERS) attFibers.add(getFiber(fib));
+                else attFibers.add(getLightfiber(fib));
             }
             for (Fiber fib : attFibers) {
                 List<Lambda> lam = fib.getLambdas();
                 for (Lambda l : lam) {
                     if (l.getResidualBandwidth() >= c.getBandwidth()) {
-                        if (!lambdas.contains(l.getId())) lambdas.add(l.getId());
+                        if (l.getId() < 0) {
+                            if (!lambdas.contains(-l.getId())) lambdas.add(-l.getId());
+                        }
+                        else {
+                            if (!lambdas.contains(l.getId())) lambdas.add(l.getId());
+                        }
                     }
                 }
             }
@@ -280,6 +296,15 @@ public class Network {
                 }
             }
         }
+        
+        /*
+         * Use this function to get the source of the lightpath and create
+         * a new one to get the destination of the lightpath by reversing
+         * the path and getting the first node attached to a original fiber
+         * Track the minimum bandwidth too which will be the total bandwidth
+         * of the lightfiber
+         */
+        
         
         public void decreaseBandwidths(Connection c) {
             LinkedList<Router> path = c.getPath();
@@ -443,7 +468,8 @@ public class Network {
         public void deleteLightpath(Connection c) {
             Router source = this.getRouter(c.getSource());
             Router destination = this.getRouter(c.getDestination());
-            Fiber re = this.getFiber(c.getLightpathFiber());
+            Fiber re = this.getLightfiber(c.getLightpathFiber());
+            //Fiber re = this.getFiber(c.getLightpathFiber());
             source.getAttachedFibers().remove((Integer)re.getId());
             destination.getAttachedFibers().remove((Integer) re.getId());
             fibers.remove(re);
