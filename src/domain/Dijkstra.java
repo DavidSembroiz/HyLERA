@@ -13,6 +13,7 @@ import java.util.Set;
 public class Dijkstra {
     
     private final int PATH_NOT_FOUND = -3;
+    private final int ORIGINAL_FIBERS = 53;
     
     private final Network net;
     private Set<Router> settledRouters;
@@ -116,7 +117,8 @@ public class Dijkstra {
         List<Lambda> lambdas;
         boolean insert;
         for (Integer fib : attFibersId) {
-            attFibers.add(net.getFiber(fib));
+            if(fib <= ORIGINAL_FIBERS) attFibers.add(net.getFiber(fib));
+            else attFibers.add(net.getLightfiber(fib));
         }
         for (Fiber fib : attFibers) {
             lambdas = fib.getLambdas();
@@ -145,7 +147,8 @@ public class Dijkstra {
         List<Integer> attFibersId = node.getAttachedFibers();
         List<Fiber> attFibers = new ArrayList<>();
         for (Integer fib : attFibersId) {
-            attFibers.add(net.getFiber(fib));
+            if(fib <= ORIGINAL_FIBERS) attFibers.add(net.getFiber(fib));
+            else attFibers.add(net.getLightfiber(fib));
         }
         for (Fiber fib : attFibers) {
             if ((fib.getNode1() == node.getId() && 
