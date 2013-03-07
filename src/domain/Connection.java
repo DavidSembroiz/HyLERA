@@ -1,7 +1,9 @@
 package domain;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 public class Connection {
 
@@ -13,7 +15,7 @@ public class Connection {
 	private int fiber;
 	private int lambda;
         private LinkedList<Router> path;
-        private int lightpathFiber;
+        private List<Integer> lightpathFibers;
         
         public Connection(int id, int timeToLive, double bandwidth, int source, int destination) {
 		this.id = id;
@@ -21,6 +23,7 @@ public class Connection {
 		this.bandwidth = bandwidth;
 		this.source = source;
 		this.destination = destination;
+                lightpathFibers = new ArrayList<>();
 	}
 	
 	public Connection(int id, int timeToLive, double bandwidth, int source, int destination, int lambda) {
@@ -30,6 +33,7 @@ public class Connection {
 		this.source = source;
 		this.destination = destination;
 		this.lambda = lambda;
+                lightpathFibers = new ArrayList<>();
 	}
         
         public void printPath() {
@@ -93,16 +97,16 @@ public class Connection {
         public void setPath(LinkedList<Router> path) {
             this.path = path;
         }
-        public int getLightpathFiber() {
-            return lightpathFiber;
+        public List<Integer> getLightpathFibers() {
+            return lightpathFibers;
         }
-        public void setLightpathFiber(int id) {
-            this.lightpathFiber = id;
+        public void addLightpathFiber(int id) {
+            this.lightpathFibers.add(id);
         }
         
         public void printConnection() {
             System.out.println("Connection id: " + this.id);
             System.out.println("Lambda: " + this.lambda);
-            System.out.println("LightPath Fiber: " + this.lightpathFiber);
+            System.out.println("LightPath Fiber: " + this.lightpathFibers);
         }
 }

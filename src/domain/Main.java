@@ -12,10 +12,16 @@ import java.util.List;
  */
 public class Main {
     
-    private static int TOTAL_STEPS = 3000;
+    private static int TOTAL_STEPS = 5000;
     
     
     public static void main(String[] args) {
+        
+        /* Cambiar asignacion inicial de lambda, quedarse con la que tiene distancia menor
+         * Cambiar lightpathfiber por conjunto de lightpaths y crearlas en createLightpath
+         * para simular la concatenacion.
+         * Asignarle longitud correcta y bw correcto a los lightpaths
+         */
         
         int step = 0;
         Network net = new Network();
@@ -23,7 +29,7 @@ public class Main {
         Dijkstra dij = new Dijkstra(net);
         while (step < TOTAL_STEPS) {
             net.decreaseTimesToLive();
-            c = new Connection(step + 1, 34, 5555, 1, 17);
+            c = new Connection(step + 1, 8, 2500, 24, 1);
             /*c2 = new Connection(step + 2, 16, 310, 1, 3);
             c3 = new Connection(step + 3, 16, 310, 1, 3);
             c4 = new Connection(step + 4, 16, 310, 1, 2);
@@ -33,8 +39,8 @@ public class Main {
             dij.execute(net.getRouter(c3.getSource()), c3);
             dij.execute(net.getRouter(c4.getSource()), c4);
             dij.execute(net.getRouter(c5.getSource()), c5);*/
-            c.printConnection();
-            c.printPath();
+            //c.printConnection();
+            //c.printPath();
             /*c2.printPath();
             c2.printConnection();
             c3.printPath();

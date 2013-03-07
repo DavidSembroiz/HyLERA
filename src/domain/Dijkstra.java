@@ -45,6 +45,9 @@ public class Dijkstra {
     public void execute(Router source, Connection con) {
         this.c = con;
         plausibleLambdas = net.getPlausibleLambdas(c);
+        LinkedList<Router> path = null;
+        double minDistance = Double.MAX_VALUE;
+        int finalLambda = -9999;
         found = false;
         Fiber lp;
         lp = net.lightpathAvailable(c);
@@ -67,12 +70,23 @@ public class Dijkstra {
                     findMinimalDistance(node);
                 }
                 if (this.getPath(net.getRouter(c.getDestination())) != null) {
-                    found = true;
-                    c.setPath(this.getPath(net.getRouter(c.getDestination())));
+                    if (minDistance > distance.get(net.getRouter(c.getDestination()))) {
+                        found = true;
+                        finalLambda = c.getLambda();
+                        minDistance = distance.get(net.getRouter(c.getDestination()));
+                        path = this.getPath(net.getRouter(c.getDestination()));
+                    }
+                    //found = true;
+                    //c.setPath(this.getPath(net.getRouter(c.getDestination())));
                 }
             }
-            if (!found) c.setLambda(PATH_NOT_FOUND);
-            net.decreaseBandwidths(c);
+            if (!found) {
+                c.setLambda(PATH_NOT_FOUND);
+            }
+            else {
+                c.setLambda(finalLambda);
+            }
+            net.decreaseBandwidths(c, path);
         }
     }
     
