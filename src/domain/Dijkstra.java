@@ -55,7 +55,7 @@ public class Dijkstra {
             net.assignLightpath(c, lp);
         }
         else {
-            for (Iterator<Integer> it = plausibleLambdas.iterator(); !found && it.hasNext();) {
+            for (Iterator<Integer> it = plausibleLambdas.iterator(); it.hasNext();) {
                 c.setLambda(it.next());
                 settledRouters = new HashSet<>();
                 unsettledRouters = new HashSet<>();
@@ -76,8 +76,6 @@ public class Dijkstra {
                         minDistance = distance.get(net.getRouter(c.getDestination()));
                         path = this.getPath(net.getRouter(c.getDestination()));
                     }
-                    //found = true;
-                    //c.setPath(this.getPath(net.getRouter(c.getDestination())));
                 }
             }
             if (!found) {
@@ -85,6 +83,9 @@ public class Dijkstra {
             }
             else {
                 c.setLambda(finalLambda);
+            }
+            for (Router r : path) {
+                System.out.println(r.getName());
             }
             net.decreaseBandwidths(c, path);
         }

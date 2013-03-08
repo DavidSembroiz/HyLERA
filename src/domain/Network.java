@@ -285,7 +285,9 @@ public class Network {
             List<Fiber> attFibers = new ArrayList<>();
             for (Integer fib : attFibersId) {
                 if(fib <= ORIGINAL_FIBERS) attFibers.add(getFiber(fib));
-                else attFibers.add(getLightfiber(fib));
+                else {
+                    attFibers.add(getLightfiber(fib));
+                }
             }
             for (Fiber fib : attFibers) {
                 List<Lambda> lam = fib.getLambdas();
