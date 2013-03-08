@@ -324,15 +324,20 @@ public class Network {
         public void decreaseBandwidths(Connection c, LinkedList<Router> path) {
             LinkedList<Router> physicalPath = new LinkedList<>();
             Router source;
+            boolean init = true;
             if (c.getLambda() == PATH_NOT_FOUND) ++blocking;
             else {
                 this.enrutedConnections.add(c);
                 Iterator<Router> it = path.iterator();
                 source = it.next();
-                physicalPath.add(source);
                 double minBW = Double.MAX_VALUE;
                 int distance = 0;
+                
                 while (it.hasNext()) {
+                    if (init) {
+                        init = false;
+                        physicalPath.add(source);
+                    }
                     Router destination = it.next();
                     int f = this.findFiber(source.getId(), destination.getId(), c.getLambda());
                     if (f > this.ORIGINAL_FIBERS) {
@@ -343,8 +348,9 @@ public class Network {
                         if (physicalPath.size() > 1) {
                             createLightpath(c, physicalPath, minBW, distance);
                             distance = 0;
-                            physicalPath.clear();
                         }
+                        init = true;
+                        physicalPath.clear();
                         c.addLightpathFiber(f);
                     }
                     else {
