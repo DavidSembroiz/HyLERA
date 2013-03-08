@@ -250,6 +250,17 @@ public class Network {
             }
             return -9999;
         }
+        
+        public int findOriginalFiber(int source, int destination) {
+            for (Fiber fib : fibers) {
+                if ((fib.getNode1() == source && fib.getNode2() == destination) ||
+                    (fib.getNode2() == source && fib.getNode1() == destination) &&
+                     fib.getId() <= ORIGINAL_FIBERS) {
+                    return fib.getId();
+                }
+            }
+            return -9999;
+        }
 
 
         public Set<Connection> getEnrutedConnections() {
@@ -307,14 +318,6 @@ public class Network {
             }
         }
         
-        /*
-         * Use this function to get the source of the lightpath and create
-         * a new one to get the destination of the lightpath by reversing
-         * the path and getting the first node attached to a original fiber
-         * Track the minimum bandwidth too which will be the total bandwidth
-         * of the lightfiber
-         */
-        
         
         public void decreaseBandwidths(Connection c, LinkedList<Router> path) {
             LinkedList<Router> physicalPath = new LinkedList<>();
@@ -325,6 +328,8 @@ public class Network {
                 Iterator<Router> it = path.iterator();
                 source = it.next();
                 physicalPath.add(source);
+                double minBW = Double.MAX_VALUE;
+                int distance = 0;
                 while (it.hasNext()) {
                     Router destination = it.next();
                     int f = this.findFiber(source.getId(), destination.getId(), c.getLambda());
@@ -334,15 +339,19 @@ public class Network {
                                 this.getLightfiber(f).getLightLambda().getResidualBandwidth(),
                                 this.getLightfiber(f).getTotalBandwidth());
                         if (physicalPath.size() > 1) {
-                            createLightpath(c, physicalPath, 100000, 10);
+                            createLightpath(c, physicalPath, minBW, distance);
+                            distance = 0;
                             physicalPath.clear();
                         }
                         c.addLightpathFiber(f);
                     }
                     else {
+                        if (this.getFiber(f).getTotalBandwidth() < minBW) {
+                            minBW = this.getFiber(f).getTotalBandwidth();
+                        }
+                        distance += this.getFiber(f).getLength();
                         physicalPath.add(destination);
                         this.getFiber(f).decreaseBandwidth(this.getFiber(f).getTotalBandwidth(), c.getLambda());
-                        //this.getFiber(f).decreaseBandwidth(c.getBandwidth(), c.getLambda());
                         this.getFiber(f).actualizeLambdaWeight(c.getLambda(),
                             this.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
                             this.getFiber(f).getTotalBandwidth());
@@ -350,10 +359,9 @@ public class Network {
                     source = destination;
                 }
                 if (physicalPath.size() > 1) {
-                    createLightpath(c, physicalPath, 1000, 1000);
+                    createLightpath(c, physicalPath, minBW, distance);
                     physicalPath.clear();
                 }
-                //createLightpath(c, c.getSource(), c.getDestination(), 3100, 1000);
             }
         }
         
@@ -362,8 +370,8 @@ public class Network {
             Router source = it.next();
             while (it.hasNext()) {
                 Router destination = it.next();
-                int f = this.findFiber(source.getId(), destination.getId(), c.getLambda());
-                this.getFiber(f).decreaseBandwidth(this.getFiber(f).getTotalBandwidth(), c.getLambda());
+                int f = this.findOriginalFiber(source.getId(), destination.getId());
+                this.getFiber(f).increaseBandwidth(this.getFiber(f).getTotalBandwidth(), c.getLambda());
                 this.getFiber(f).actualizeLambdaWeight(c.getLambda(),
                             this.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
                             this.getFiber(f).getTotalBandwidth());
@@ -451,10 +459,10 @@ public class Network {
             rp.add(getRouter(c.getDestination()));*/
             this.enrutedConnections.add(c);
             //c.setPath(findPath(f.getId()));
-            c.setLambda(-f.getLambdas().get(0).getId());
+            c.setLambda(-f.getLightLambda().getId());
             c.addLightpathFiber(f.getId());
-            f.getLambdas().get(0).decreaseBandwidth(c.getBandwidth());
-            f.actualizeLightLambdaWeight(f.getLambdas().get(0).getResidualBandwidth(), f.getTotalBandwidth());
+            f.getLightLambda().decreaseBandwidth(c.getBandwidth());
+            f.actualizeLightLambdaWeight(f.getLightLambda().getResidualBandwidth(), f.getTotalBandwidth());
         }
         
         /*public LinkedList<Router> findPath(int id) {
@@ -465,7 +473,11 @@ public class Network {
         }*/
         
         
-        public void createLightpath(Connection c, LinkedList<Router> path, double bw, int dist) {
+        public void createLightpath(Connection c, LinkedList<Router> p, double bw, int dist) {
+            LinkedList<Router> path = new LinkedList<>();
+            for (Router r : p) {
+                path.add(r);
+            }
             int source = path.get(0).getId();
             int destination = path.get(path.size() - 1).getId();
             Fiber f = new Fiber(++numFibers, source, destination,
@@ -491,10 +503,11 @@ public class Network {
                 delete = false;
                 int id = ids.next();
                 Iterator<Lightpath> lps = lightpaths.iterator();
-                while (lps.hasNext()) {
+                while (!delete && lps.hasNext()) {
                     Fiber f = lps.next().getLightfiber();
-                    if (!delete && id == f.getId()) {
+                    if (id == f.getId()) {
                         f.increaseLightBandwidth(c.getBandwidth());
+                        f.actualizeLightLambdaWeight(f.getLightLambda().getResidualBandwidth(), f.getTotalBandwidth());
                         if (f.getLightLambda().getResidualBandwidth() == f.getTotalBandwidth()) {
                             delete = true;
                         }

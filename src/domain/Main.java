@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class Main {
     
-    private static int TOTAL_STEPS = 9;
+    private static int TOTAL_STEPS = 1;
     
     
     public static void main(String[] args) {
@@ -29,7 +29,7 @@ public class Main {
         Dijkstra dij = new Dijkstra(net);
         while (step < TOTAL_STEPS) {
             net.decreaseTimesToLive();
-            c = new Connection(step + 1, 8, 2500, 1, 2);
+            c = new Connection(step + 1, 10, 310, 1, 32);
             /*c2 = new Connection(step + 2, 16, 310, 1, 3);
             c3 = new Connection(step + 3, 16, 310, 1, 3);
             c4 = new Connection(step + 4, 16, 310, 1, 2);
