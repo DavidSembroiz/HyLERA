@@ -36,7 +36,7 @@ public class Connection {
                 lightpathFibers = new ArrayList<>();
 	}
         
-        public void printPath() {
+        /*public void printPath() {
             if (this.lambda == -3) {
                 System.out.println("Path not found");
             }
@@ -45,7 +45,7 @@ public class Connection {
                     System.out.println(it.next().getName());
                 }
             }
-        }
+        }*/
 	
 	public int getId() {
 		return id;

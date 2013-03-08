@@ -324,9 +324,8 @@ public class Network {
                 this.enrutedConnections.add(c);
                 Iterator<Router> it = path.iterator();
                 source = it.next();
-                
+                physicalPath.add(source);
                 while (it.hasNext()) {
-                    physicalPath.add(source);
                     Router destination = it.next();
                     int f = this.findFiber(source.getId(), destination.getId(), c.getLambda());
                     if (f > this.ORIGINAL_FIBERS) {
@@ -335,11 +334,13 @@ public class Network {
                                 this.getLightfiber(f).getLightLambda().getResidualBandwidth(),
                                 this.getLightfiber(f).getTotalBandwidth());
                         if (physicalPath.size() > 1) {
-                            createLightpath(c, physicalPath, 1000, 1000);
+                            createLightpath(c, physicalPath, 100000, 10);
                             physicalPath.clear();
                         }
+                        c.addLightpathFiber(f);
                     }
                     else {
+                        physicalPath.add(destination);
                         this.getFiber(f).decreaseBandwidth(this.getFiber(f).getTotalBandwidth(), c.getLambda());
                         //this.getFiber(f).decreaseBandwidth(c.getBandwidth(), c.getLambda());
                         this.getFiber(f).actualizeLambdaWeight(c.getLambda(),
@@ -348,11 +349,29 @@ public class Network {
                     }
                     source = destination;
                 }
+                if (physicalPath.size() > 1) {
+                    createLightpath(c, physicalPath, 1000, 1000);
+                    physicalPath.clear();
+                }
                 //createLightpath(c, c.getSource(), c.getDestination(), 3100, 1000);
             }
         }
         
-        public void increaseBandwidths(Connection c) {
+        public void increaseBandwidths(Connection c, LinkedList<Router> path) {
+            Iterator<Router> it = path.iterator();
+            Router source = it.next();
+            while (it.hasNext()) {
+                Router destination = it.next();
+                int f = this.findFiber(source.getId(), destination.getId(), c.getLambda());
+                this.getFiber(f).decreaseBandwidth(this.getFiber(f).getTotalBandwidth(), c.getLambda());
+                this.getFiber(f).actualizeLambdaWeight(c.getLambda(),
+                            this.getFiber(f).getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
+                            this.getFiber(f).getTotalBandwidth());
+                    source = destination;
+                }
+            }
+        
+        /*public void increaseBandwidths(Connection c) {
             LinkedList<Router> path = c.getPath();
             Router source;
             Iterator<Router> it = path.iterator();
@@ -367,7 +386,7 @@ public class Network {
                 source = destination;
             }
             //increaseLightpath(c);
-        }
+        }*/
         
         /* Manejo de Lightpaths:
          * 
@@ -466,7 +485,28 @@ public class Network {
         }
         
         public void increaseLightpath(Connection c) {
-            Iterator<Lightpath> it = this.lightpaths.iterator();
+            boolean delete;
+            Iterator<Integer> ids = c.getLightpathFibers().iterator();
+            while(ids.hasNext()) {
+                delete = false;
+                int id = ids.next();
+                Iterator<Lightpath> lps = lightpaths.iterator();
+                while (lps.hasNext()) {
+                    Fiber f = lps.next().getLightfiber();
+                    if (!delete && id == f.getId()) {
+                        f.increaseLightBandwidth(c.getBandwidth());
+                        if (f.getLightLambda().getResidualBandwidth() == f.getTotalBandwidth()) {
+                            delete = true;
+                        }
+                    }
+                }
+                if (delete) {
+                    deleteLightpath(c, id);
+                }
+            }
+            
+            
+            /*Iterator<Lightpath> it = this.lightpaths.iterator();
             boolean delete = false;
             while(it.hasNext()) {
                 Fiber f = it.next().getLightfiber();
@@ -481,7 +521,7 @@ public class Network {
             if (delete) {
                 increaseBandwidths(c);
                 deleteLightpath(c);
-            }
+            }*/
             /*for (Fiber f : this.lightpaths) {
                 if (f.getId() == c.getLightpathFiber()) {
                     f.increaseLightpathBandwidth(c.getBandwidth());
@@ -490,9 +530,27 @@ public class Network {
                     }
                 }
             }*/
-        }   
+        }
         
-        public void deleteLightpath(Connection c) {
+        public void deleteLightpath(Connection c, int lightfiber) {
+            Lightpath lf = null;
+            for (Lightpath i : lightpaths) {
+                if (i.getLightfiber().getId() == lightfiber) {
+                    lf = i;
+                }
+            }
+            Fiber rem = lf.getLightfiber();
+            Router source = this.getRouter(rem.getNode1());
+            Router destination = this.getRouter(rem.getNode2());
+            source.getAttachedFibers().remove((Integer) rem.getId());
+            destination.getAttachedFibers().remove((Integer) rem.getId());
+            increaseBandwidths(c, lf.getPath());
+            
+            fibers.remove(rem);
+            lightpaths.remove(lf);
+        }
+        
+        /*public void deleteLightpath(Connection c) {
             Router source = this.getRouter(c.getSource());
             Router destination = this.getRouter(c.getDestination());
             Fiber re = this.getLightfiber(c.getLightpathFiber());
@@ -501,5 +559,5 @@ public class Network {
             destination.getAttachedFibers().remove((Integer) re.getId());
             fibers.remove(re);
             lightpaths.remove(re);
-        }
+        }*/
 }

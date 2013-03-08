@@ -81,7 +81,7 @@ public class Fiber {
             lambdas.get(lambda - 1).increaseBandwidth(bandwidth);
         }
         
-        public void increaseLightpathBandwidth(double bw) {
+        public void increaseLightBandwidth(double bw) {
             lambdas.get(0).increaseBandwidth(bw);
         }
         
