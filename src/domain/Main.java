@@ -29,14 +29,15 @@ public class Main {
         Dijkstra dij = new Dijkstra(net);
         while (step < TOTAL_STEPS) {
             net.decreaseTimesToLive();
-            c = new Connection(step + 1, 16, 1000, 1, 14);
-            c2 = new Connection(step + 2, 10, 310, 1, 3);
-            /*c3 = new Connection(step + 3, 16, 310, 1, 3);
-            c4 = new Connection(step + 4, 16, 310, 1, 2);
+            c = new Connection(step + 1, 16, 1, 6, 28);
+            c2 = new Connection(step + 2, 10, 155, 1, 31);
+            c3 = new Connection(step + 3, 16, 155, 1, 27);
+            /*c4 = new Connection(step + 4, 16, 310, 1, 2);
             c5 = new Connection(step + 5, 16, 200000, 1, 2);*/
             if (step < 1) {
                 dij.execute(net.getRouter(c.getSource()), c);
                 dij.execute(net.getRouter(c2.getSource()), c2);
+                dij.execute(net.getRouter(c2.getSource()), c3);
             }
             /*dij.execute(net.getRouter(c2.getSource()), c2);
             dij.execute(net.getRouter(c3.getSource()), c3);
@@ -44,6 +45,7 @@ public class Main {
             dij.execute(net.getRouter(c5.getSource()), c5);*/
             c.printConnection();
             c2.printConnection();
+            c3.printConnection();
             //c.printPath();
             /*c2.printPath();
             c2.printConnection();

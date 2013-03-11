@@ -170,7 +170,8 @@ public class Dijkstra {
                  fib.getNode2() == neighbor.getId()) ||
                  (fib.getNode2() == node.getId() &&
                   fib.getNode1() == neighbor.getId())) {
-                return fib.getLambda(c.getLambda()).getWeight();
+                if (fib.getId() > ORIGINAL_FIBERS) return fib.getLightLambda().getWeight();
+                else return fib.getLambda(c.getLambda()).getWeight();
             }
         }
         return Integer.MAX_VALUE;
