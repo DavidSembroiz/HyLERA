@@ -16,7 +16,8 @@ public class Network {
 	private List<Fiber> fibers;
         private List<Lightpath> lightpaths;
 	private Set<Connection> enrutedConnections;
-        private int blocking;
+        private int blockedConnections;
+        private int totalConnections;
         private int numFibers;
 	
 	
@@ -26,13 +27,18 @@ public class Network {
         
 	private void generateNetwork() {
             enrutedConnections = new HashSet<>();
-            blocking = 0;
+            blockedConnections = 0;
+            totalConnections = 0;
             numFibers = 53;
             generateFibers();
             generateRouters();
             generateLambdas();
             //generateDumbNetwork();
 	}
+        
+        public double getBlockingPercentaje() {
+            return ((double)blockedConnections/totalConnections)*100;
+        }
         
         public List<Router> getRouters() {
             return routers;
@@ -216,6 +222,31 @@ public class Network {
             }
         }
         
+        private Lightpath getLightpath(int id) {
+            for (Lightpath l : this.lightpaths) {
+                if (id == l.getLightfiber().getId()) {
+                    return l;
+                }
+            }
+            return null;
+        }
+        
+        public void printConnection(Connection c) {
+            System.out.println("------------------------------------------");
+            System.out.println("Connection id: " + c.getId());
+            System.out.println("Lambda: " + c.getLambda());
+            System.out.println("LightPath Fibers: " + c.getLightpathFibers());
+            for (Integer i : c.getLightpathFibers()) {
+                System.out.println(i);
+                System.out.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode1()).getName());
+                LinkedList<Router> path = this.getLightpath(i).getPath();
+                for (Router r : path) {
+                    System.out.println("-----" + r.getName());
+                }
+                System.out.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode2()).getName());
+            }
+        }
+        
         private void printRouter(Router r) {
             System.out.println("");
             System.out.println("Router " + r.getId() + " " + r.getName());
@@ -271,8 +302,16 @@ public class Network {
             this.enrutedConnections = enrutedConnections;
         }
         
-        public int getBlocking() {
-            return blocking;
+        public int getBlockedConnections() {
+            return blockedConnections;
+        }
+        
+        public int getTotalConnections() {
+            return totalConnections;
+        }
+        
+        public void increaseTotalConnections() {
+            this.totalConnections++;
         }
         
         // Check if a lightpath lambda can be used to get a path (should be yes)
@@ -325,7 +364,7 @@ public class Network {
             LinkedList<Router> physicalPath = new LinkedList<>();
             Router source;
             boolean init = true;
-            if (c.getLambda() == PATH_NOT_FOUND) ++blocking;
+            if (c.getLambda() == PATH_NOT_FOUND) ++blockedConnections;
             else {
                 this.enrutedConnections.add(c);
                 Iterator<Router> it = path.iterator();

@@ -44,6 +44,7 @@ public class Dijkstra {
     
     public void execute(Router source, Connection con) {
         this.c = con;
+        net.increaseTotalConnections();
         plausibleLambdas = net.getPlausibleLambdas(c);
         LinkedList<Router> path = null;
         double minDistance = Double.MAX_VALUE;
@@ -83,9 +84,6 @@ public class Dijkstra {
             }
             else {
                 c.setLambda(finalLambda);
-            }
-            for (Router r : path) {
-                System.out.println(r.getName());
             }
             net.decreaseBandwidths(c, path);
         }

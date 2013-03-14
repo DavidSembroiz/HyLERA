@@ -1,7 +1,6 @@
 package domain;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -105,8 +104,9 @@ public class Connection {
         }
         
         public void printConnection() {
+            System.out.println("------------------------------------------");
             System.out.println("Connection id: " + this.id);
             System.out.println("Lambda: " + this.lambda);
-            System.out.println("LightPath Fiber: " + this.lightpathFibers);
+            System.out.println("LightPath Fibers: " + this.lightpathFibers);
         }
 }
