@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class Dijkstra {
     
-    private final int PATH_NOT_FOUND = -3;
+    private final int PATH_NOT_FOUND = -9999;
     private final int ORIGINAL_FIBERS = 53;
     
     private final Network net;
@@ -79,6 +79,7 @@ public class Dijkstra {
                     }
                 }
             }
+            System.out.println("Finish");
             if (!found) {
                 c.setLambda(PATH_NOT_FOUND);
             }
@@ -169,7 +170,11 @@ public class Dijkstra {
                  (fib.getNode2() == node.getId() &&
                   fib.getNode1() == neighbor.getId())) {
                 if (fib.getId() > ORIGINAL_FIBERS) return fib.getLightLambda().getWeight();
-                else return fib.getLambda(c.getLambda()).getWeight();
+                else {
+                    if (c.getLambda() < fib.getLambdas().size()) { 
+                        return fib.getLambda(c.getLambda()).getWeight();
+                    }
+                }
             }
         }
         return Integer.MAX_VALUE;

@@ -4,7 +4,7 @@
  */
 package domain;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class Main {
     
-    private static int TOTAL_STEPS = 200;
+    private static int TOTAL_STEPS = 300;
     
     
     public static void main(String[] args) {
@@ -25,30 +25,16 @@ public class Main {
         
         int step = 0;
         Network net = new Network();
-        Connection c, c2, c3, c4, c5;
         Dijkstra dij = new Dijkstra(net);
         while (step < TOTAL_STEPS) {
             net.decreaseTimesToLive();
-            c = new Connection(step + 1, 16, 1, 6, 28);
-            c2 = new Connection(step + 2, 10, 155, 1, 31);
-            c3 = new Connection(step + 3, 16, 155, 1, 27);
-            /*c4 = new Connection(step + 4, 16, 310, 1, 2);
-            c5 = new Connection(step + 5, 16, 200000, 1, 2);*/
-            //if (step < 1) {
+            ArrayList<Connection> connections = net.generateConnections();
+            for (Connection c : connections) {
                 dij.execute(net.getRouter(c.getSource()), c);
-                dij.execute(net.getRouter(c2.getSource()), c2);
-                dij.execute(net.getRouter(c2.getSource()), c3);
-            //}
-            /*dij.execute(net.getRouter(c2.getSource()), c2);
-            dij.execute(net.getRouter(c3.getSource()), c3);
-            dij.execute(net.getRouter(c4.getSource()), c4);
-            dij.execute(net.getRouter(c5.getSource()), c5);*/
-            net.printConnection(c);
-            net.printConnection(c2);
-            net.printConnection(c3);
+                net.printConnection(c);
+            }
             ++step;
         }
-        //net.printNetwork();
         System.out.println("Blocked connections: " + net.getBlockedConnections());
         System.out.println("Total connections: " + net.getTotalConnections());
         System.out.println("Percentaje of blocking: " + net.getBlockingPercentaje());

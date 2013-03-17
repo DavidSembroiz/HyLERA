@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class Network {
     
-        private final int PATH_NOT_FOUND = -3;
+        private final int PATH_NOT_FOUND = -9999;
         private final int ORIGINAL_FIBERS = 53;
 
 	private List<Router> routers;
@@ -33,8 +33,25 @@ public class Network {
             generateFibers();
             generateRouters();
             generateLambdas();
-            //generateDumbNetwork();
 	}
+        
+        public ArrayList<Connection> generateConnections() {
+            ArrayList<Connection> cons = new ArrayList<>();
+            int index = 0;
+            for (int i = 0; i < 100; ++i) {
+                int ttl = (int) Math.floor(Math.random()*50);
+                int source = (int) Math.floor(Math.random()*33) + 1;
+                int destination = (int) Math.floor(Math.random()*33) + 1;
+                while (source == destination) {
+                    destination = (int) Math.floor(Math.random()*33) + 1;
+                }
+                double bw = Math.floor(Math.random()*10) + 1;
+                Connection c = new Connection(++index, ttl, bw, source, destination);
+                cons.add(c);
+                
+            }
+            return cons;
+        }
         
         public double getBlockingPercentaje() {
             return ((double)blockedConnections/totalConnections)*100;
@@ -62,26 +79,6 @@ public class Network {
         Router getRouter(int id) {
             return routers.get(id - 1);
         }
-        
-        /*private void generateDumbNetwork() {
-            routers = new ArrayList<>();
-            List<Integer> attachedFibers = new ArrayList<>();
-            attachedFibers.add(1);
-            routers.add(new Router(1, "PT", attachedFibers));
-            attachedFibers = new ArrayList<>();
-            attachedFibers.add(1);
-            attachedFibers.add(2);
-            routers.add(new Router(2, "ES", attachedFibers));
-            attachedFibers = new ArrayList<>();
-            attachedFibers.add(2);
-            routers.add(new Router(3, "IS", attachedFibers));
-            
-            fibers = new ArrayList<>();
-            fibers.add(new Fiber(1, 1, 2, 4, 200, 1000));
-            fibers.get(0).setWeight(10);
-            fibers.add(new Fiber(2, 2, 3, 4, 40, 200));
-            fibers.get(1).setWeight(20);
-        }*/
 	
 	private void generateRouters() {
                 routers = new ArrayList<>();
@@ -234,6 +231,8 @@ public class Network {
         public void printConnection(Connection c) {
             System.out.println("------------------------------------------");
             System.out.println("Connection id: " + c.getId());
+            System.out.println("Source: " + c.getSource());
+            System.out.println("Destination: " + c.getDestination());
             System.out.println("Lambda: " + c.getLambda());
             System.out.println("LightPath Fibers: " + c.getLightpathFibers());
             for (Integer i : c.getLightpathFibers()) {
@@ -272,7 +271,7 @@ public class Network {
                             return fib.getId();
                         }
                     }
-                    else {
+                    else if (lambda <= fib.getNumLambdas()){
                         if (fib.getLambda(lambda).getResidualBandwidth() != 0) {
                             return fib.getId();
                         }
