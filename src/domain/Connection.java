@@ -13,7 +13,6 @@ public class Connection {
 	private int destination;
 	private int fiber;
 	private int lambda;
-        private LinkedList<Router> path;
         private List<Integer> lightpathFibers;
         
         public Connection(int id, int timeToLive, double bandwidth, int source, int destination) {
@@ -24,27 +23,6 @@ public class Connection {
 		this.destination = destination;
                 lightpathFibers = new ArrayList<>();
 	}
-	
-	public Connection(int id, int timeToLive, double bandwidth, int source, int destination, int lambda) {
-		this.id = id;
-		this.timeToLive = timeToLive;
-		this.bandwidth = bandwidth;
-		this.source = source;
-		this.destination = destination;
-		this.lambda = lambda;
-                lightpathFibers = new ArrayList<>();
-	}
-        
-        /*public void printPath() {
-            if (this.lambda == -3) {
-                System.out.println("Path not found");
-            }
-            else {
-                for (Iterator<Router> it = path.iterator(); it.hasNext();) {
-                    System.out.println(it.next().getName());
-                }
-            }
-        }*/
 	
 	public int getId() {
 		return id;
@@ -88,14 +66,6 @@ public class Connection {
 	public void setLambda(int lambda) {
 		this.lambda = lambda;
 	}
-
-        public LinkedList<Router> getPath() {
-            return path;
-        }
-
-        public void setPath(LinkedList<Router> path) {
-            this.path = path;
-        }
         public List<Integer> getLightpathFibers() {
             return lightpathFibers;
         }

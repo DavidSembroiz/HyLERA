@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 public class Main {
     
-    private static int TOTAL_STEPS = 300;
+    private static int TOTAL_STEPS = 200;
     
     
     public static void main(String[] args) {
