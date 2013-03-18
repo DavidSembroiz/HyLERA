@@ -142,17 +142,20 @@ public class Network {
             this.totalConnections++;
         }
         
-        public List<Integer> getPlausibleLambdas(Connection c) {
-            List<Integer> lambdas = new ArrayList<>();
-            Router source = getRouter(c.getSource());
+        public List<Fiber> getAttachedFibersById(int id) {
+            Router source = getRouter(id);
             List<Integer> attFibersId = source.getAttachedFibers();
             List<Fiber> attFibers = new ArrayList<>();
             for (Integer fib : attFibersId) {
                 if(fib <= ORIGINAL_FIBERS) attFibers.add(getFiber(fib));
-                else {
-                    attFibers.add(getLightfiber(fib));
-                }
+                else attFibers.add(getLightfiber(fib));
             }
+            return attFibers;
+        }
+        
+        public List<Integer> getPlausibleLambdas(Connection c) {
+            List<Integer> lambdas = new ArrayList<>();
+            List<Fiber> attFibers = this.getAttachedFibersById(c.getSource());
             for (Fiber fib : attFibers) {
                 List<Lambda> lam = fib.getLambdas();
                 for (Lambda l : lam) {

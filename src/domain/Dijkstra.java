@@ -34,7 +34,7 @@ public class Dijkstra {
         plausibleLambdas = net.getPlausibleLambdas(c);
         LinkedList<Router> path = null;
         double minDistance = Double.MAX_VALUE;
-        int finalLambda = -9999;
+        int finalLambda = -8888;
         found = false;
         Fiber lp;
         lp = net.lightpathAvailable(c);
@@ -108,15 +108,10 @@ public class Dijkstra {
     }
     
     private List<Router> getNeighbors(Router node) {
-        List<Router> neighbors = new ArrayList<>();
-        List<Integer> attFibersId = node.getAttachedFibers();
-        List<Fiber> attFibers = new ArrayList<>();
         List<Lambda> lambdas;
         boolean insert;
-        for (Integer fib : attFibersId) {
-            if(fib <= ORIGINAL_FIBERS) attFibers.add(net.getFiber(fib));
-            else attFibers.add(net.getLightfiber(fib));
-        }
+        List<Router> neighbors = new ArrayList<>();
+        List<Fiber> attFibers = net.getAttachedFibersById(node.getId());
         for (Fiber fib : attFibers) {
             lambdas = fib.getLambdas();
             insert = false;
