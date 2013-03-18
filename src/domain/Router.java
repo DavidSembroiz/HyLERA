@@ -6,6 +6,7 @@ public class Router {
 
 	private int id;
 	private String name;
+        private double totalBandwidth;
 	private double totalConsumption;
 	private double actualConsumption;
         private List<Integer> attachedFibers;
@@ -29,6 +30,15 @@ public class Router {
 	public void setName(String name) {
 		this.name = name;
 	}
+        public double getTotalBandwidth() {
+                return totalBandwidth;
+        }
+        public void setTotalBandwidth(double bw) {
+                this.totalBandwidth = bw;
+        }
+        public void increaseTotalBandwidth(double inc) {
+                this.totalBandwidth += inc;
+        }
 	public double getTotalConsumption() {
 		return totalConsumption;
 	}
