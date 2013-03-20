@@ -11,13 +11,13 @@ public class Fiber {
 	private List<Lambda> lambdas;
 	private double totalBandwidth;
 	
-	public Fiber(int id, int node1, int node2, int numLambdas, double totalBandwidth, int length) {
+	public Fiber(int id, int node1, int node2, int numLambdas, double Bandwidth, int length) {
 		this.id = id;
 		this.node1 = node1;
 		this.node2 = node2;
 		this.numLambdas = numLambdas;
 		this.length = length;
-		this.totalBandwidth = totalBandwidth;
+		this.totalBandwidth = Bandwidth;
 	}
 	public int getId() {
 		return id;

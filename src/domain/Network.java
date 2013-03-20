@@ -34,6 +34,7 @@ public class Network {
             numFibers = 53;
             generateFibers();
             generateRouters();
+            setTotalRouterBandwidths();
             generateLambdas();
 	}
         
@@ -493,11 +494,26 @@ public class Network {
                 fib.setLambdas(l);
             }
         }
+        
+        private void setTotalRouterConsumption(Router r) {
+            r.setTotalConsumption(3*r.getTotalBandwidth());
+            r.setActualConsumption(r.getTotalConsumption()/2);
+        }
+        
+        private void setTotalRouterBandwidths() {
+            for (Router r : routers) {
+                for (Integer b : r.getAttachedFibers()) {
+                    Fiber f = this.getFiber(b);
+                    r.increaseTotalBandwidth(f.getTotalBandwidth()*f.getNumLambdas());
+                }
+                setTotalRouterConsumption(r);
+            }
+        }
 
-        private List<Integer> generateAttachedFibers(int i) {
+        private List<Integer> generateAttachedFibers(int source) {
             List<Integer> attFibersId = new ArrayList<>();
             for (Fiber fib : fibers) {
-                if (fib.getNode1() == i || fib.getNode2() == i) {
+                if (fib.getNode1() == source || fib.getNode2() == source) {
                     attFibersId.add(fib.getId());
                 }
             }
