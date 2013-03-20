@@ -19,6 +19,7 @@ public class Network {
         private int blockedConnections;
         private int totalConnections;
         private int numFibers;
+        private int connectionIndex;
 	
 	
         public Network() {
@@ -29,6 +30,7 @@ public class Network {
             enrutedConnections = new HashSet<>();
             blockedConnections = 0;
             totalConnections = 0;
+            connectionIndex = 0;
             numFibers = 53;
             generateFibers();
             generateRouters();
@@ -37,20 +39,37 @@ public class Network {
         
         public ArrayList<Connection> generateConnections() {
             ArrayList<Connection> cons = new ArrayList<>();
-            int index = 0;
-            for (int i = 0; i < 100; ++i) {
-                int ttl = (int) Math.floor(Math.random()*50);
+            for (int i = 0; i < 1; ++i) {
+                int ttl = (int) Math.floor(Math.random()*5) + 1;
                 int source = (int) Math.floor(Math.random()*33) + 1;
                 int destination = (int) Math.floor(Math.random()*33) + 1;
                 while (source == destination) {
                     destination = (int) Math.floor(Math.random()*33) + 1;
                 }
                 double bw = Math.floor(Math.random()*10) + 1;
-                Connection c = new Connection(++index, ttl, bw, source, destination);
+                int index = getAvailableIndex();
+                //int index = getNextIndex();
+                Connection c = new Connection(index, ttl, bw, source, destination);
                 cons.add(c);
                 
             }
             return cons;
+        }
+        
+        private int getNextIndex() {
+            return ++connectionIndex;
+        }
+        
+        private int getAvailableIndex() {
+            for (int i = 1; i < Integer.MAX_VALUE; ++i) {
+                boolean found = false;
+                for (Iterator<Connection> it = this.enrutedConnections.iterator(); !found && it.hasNext();) {
+                    Connection c = it.next();
+                    if (c.getId() == i) found = true;
+                }
+                if (!found) return i;
+            }
+            return Integer.MAX_VALUE;
         }
         
         public double getBlockingPercentaje() {
@@ -273,6 +292,22 @@ public class Network {
             f.actualizeLightLambdaWeight(f.getLightLambda().getResidualBandwidth(), f.getTotalBandwidth());
         }
         
+        private int getAvailableId() {
+            for (int i = 54; i < Integer.MAX_VALUE; ++i) {
+                boolean found = false;
+                for (Iterator<Lightpath> it = this.lightpaths.iterator(); !found && it.hasNext();) {
+                    Lightpath l = it.next();
+                    if (l.getLightfiber().getId() == i) found = true;
+                }
+                if (!found) return i;
+            }
+            return Integer.MAX_VALUE;
+        }
+        
+        private int getNextNumFiber() {
+            return ++this.numFibers;
+        }
+        
         
         public void createLightpath(Connection c, LinkedList<Router> p, double bw, int dist) {
             LinkedList<Router> path = new LinkedList<>();
@@ -281,7 +316,9 @@ public class Network {
             }
             int source = path.get(0).getId();
             int destination = path.get(path.size() - 1).getId();
-            Fiber f = new Fiber(++numFibers, source, destination,
+            int numFiber = getAvailableId();
+            //int numFiber = getNextNumFiber();
+            Fiber f = new Fiber(numFiber, source, destination,
                                 1, bw, dist);
             
             Lambda l = new Lambda(-c.getLambda(), bw - c.getBandwidth(), 0);
@@ -289,10 +326,10 @@ public class Network {
             List<Lambda> lams = new ArrayList<>();
             lams.add(l);
             f.setLambdas(lams);
-            routers.get(source - 1).addAttachedFiber(numFibers);
-            routers.get(destination - 1).addAttachedFiber(numFibers);
+            routers.get(source - 1).addAttachedFiber(numFiber);
+            routers.get(destination - 1).addAttachedFiber(numFiber);
             Lightpath light = new Lightpath(path, f);
-            c.addLightpathFiber(numFibers);
+            c.addLightpathFiber(numFiber);
             fibers.add(f);
             lightpaths.add(light);
         }
@@ -482,9 +519,11 @@ public class Network {
         public void printConnection(Connection c) {
             System.out.println("------------------------------------------");
             System.out.println("Connection id: " + c.getId());
+            System.out.println("Time to live: " + c.getTimeToLive());
             System.out.println("Source: " + c.getSource());
             System.out.println("Destination: " + c.getDestination());
             System.out.println("Lambda: " + c.getLambda());
+            System.out.println("Bandwidth: " + c.getBandwidth());
             System.out.println("LightPath Fibers: " + c.getLightpathFibers());
             for (Integer i : c.getLightpathFibers()) {
                 System.out.println(i);

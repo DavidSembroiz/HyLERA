@@ -103,7 +103,7 @@ public class Dijkstra {
 
     private double getShortestDistance(Router rou) {
         Double d = distance.get(rou);
-        if (d == null) return Integer.MAX_VALUE;
+        if (d == null) return Double.MAX_VALUE;
         return d;
     }
     
