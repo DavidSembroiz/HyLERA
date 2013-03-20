@@ -81,7 +81,7 @@ public class Network {
             return routers;
         }
         
-        Router getRouter(int id) {
+        public Router getRouter(int id) {
             return routers.get(id - 1);
         }
         
