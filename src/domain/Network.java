@@ -40,8 +40,8 @@ public class Network {
         
         public ArrayList<Connection> generateConnections() {
             ArrayList<Connection> cons = new ArrayList<>();
-            for (int i = 0; i < 1; ++i) {
-                int ttl = (int) Math.floor(Math.random()*5) + 1;
+            for (int i = 0; i < 10; ++i) {
+                int ttl = (int) Math.floor(Math.random()*10) + 1;
                 int source = (int) Math.floor(Math.random()*33) + 1;
                 int destination = (int) Math.floor(Math.random()*33) + 1;
                 while (source == destination) {
@@ -199,9 +199,18 @@ public class Network {
             while (it.hasNext()){
                 con = it.next();
                 con.setTimeToLive(con.getTimeToLive() - 1);
-                if (con.getTimeToLive() == 0) {
+                if (con.getTimeToLive() < 0) {
                     increaseLightpath(con);
                     it.remove();
+                }
+            }
+        }
+        
+        private void increasePathConsumption(List<Integer> path, double bw) {
+            for (Integer i : path) {
+                LinkedList<Router> physicalPath = this.getLightpath(i).getPath();
+                for (Router r : physicalPath) {
+                    r.increaseConsumption(bw);
                 }
             }
         }
@@ -257,6 +266,7 @@ public class Network {
                     physicalPath.clear();
                 }
             }
+            this.increasePathConsumption(c.getLightpathFibers(), c.getBandwidth());
         }
         
         public void increaseBandwidths(Connection c, LinkedList<Router> path) {
@@ -285,12 +295,20 @@ public class Network {
             return null;
         }
         
+        private void increaseRouterConsumption(Lightpath p, double bw) {
+            LinkedList<Router> path = p.getPath();
+            for (Router r : path) {
+                r.increaseConsumption(bw);
+            }
+        }
+        
         public void assignLightpath(Connection c, Fiber f) {
             this.enrutedConnections.add(c);
             c.setLambda(-f.getLightLambda().getId());
             c.addLightpathFiber(f.getId());
             f.getLightLambda().decreaseBandwidth(c.getBandwidth());
             f.actualizeLightLambdaWeight(f.getLightLambda().getResidualBandwidth(), f.getTotalBandwidth());
+            increaseRouterConsumption(this.getLightpath(f.getId()), c.getBandwidth());
         }
         
         private int getAvailableId() {
@@ -335,7 +353,17 @@ public class Network {
             lightpaths.add(light);
         }
         
+        private void decreasePathConsumption(List<Integer> path, double bw) {
+            for (Integer i : path) {
+                LinkedList<Router> physicalPath = this.getLightpath(i).getPath();
+                for (Router r : physicalPath) {
+                    r.decreaseConsumption(bw);
+                }
+            }
+        }
+        
         public void increaseLightpath(Connection c) {
+            decreasePathConsumption(c.getLightpathFibers(), c.getBandwidth());
             boolean delete;
             Iterator<Integer> ids = c.getLightpathFibers().iterator();
             while(ids.hasNext()) {

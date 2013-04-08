@@ -58,4 +58,14 @@ public class Router {
         public void addAttachedFiber(int id) {
             this.attachedFibers.add(id);
         }
+        
+        
+        // Function need to be changed, just created to test
+        public void increaseConsumption(double bw) {
+            this.actualConsumption += 3*bw;
+        }
+        
+        public void decreaseConsumption(double bw) {
+            this.actualConsumption -= 3*bw;
+        }
 }
