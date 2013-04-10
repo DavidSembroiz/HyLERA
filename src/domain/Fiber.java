@@ -89,6 +89,14 @@ public class Fiber {
             this.lambdas.get(lambda - 1).actualizeWeight(residual, total);
         }
         
+        public void actualizeLambdaEnergeticWeight(int lambda, double rs, double rd, int lon) {
+            this.lambdas.get(lambda - 1).actualizeEnergeticWeight(rs, rd, lon);
+        }
+        
+        public void setInfinityLambdaEnergeticWeight(int lambda) {
+            this.lambdas.get(lambda - 1).actualizeEnergeticWeight(0, 0, 0);
+        }
+        
         public void actualizeLightLambdaWeight(double residual, double total) {
             this.lambdas.get(0).actualizeWeight(residual, total);
         }

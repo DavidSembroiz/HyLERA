@@ -13,6 +13,7 @@ import java.util.Set;
 public class Dijkstra {
     
     private final int PATH_NOT_FOUND = -9999;
+    private final int LAMBDA_NOT_SETTLED = -8888;
     private final int ORIGINAL_FIBERS = 53;
     
     private final Network net;
@@ -34,7 +35,7 @@ public class Dijkstra {
         plausibleLambdas = net.getPlausibleLambdas(c);
         LinkedList<Router> path = null;
         double minDistance = Double.MAX_VALUE;
-        int finalLambda = -8888;
+        int finalLambda = LAMBDA_NOT_SETTLED;
         found = false;
         Fiber lp;
         lp = net.lightpathAvailable(c);
@@ -146,10 +147,14 @@ public class Dijkstra {
                  fib.getNode2() == neighbor.getId()) ||
                  (fib.getNode2() == node.getId() &&
                   fib.getNode1() == neighbor.getId())) {
-                if (fib.getId() > ORIGINAL_FIBERS) return fib.getLightLambda().getWeight();
+                if (fib.getId() > ORIGINAL_FIBERS) {
+                    if (net.MODE == 0) return fib.getLightLambda().getWeight();
+                    else if (net.MODE == 1) return fib.getLightLambda().getEnergeticWeight();
+                }
                 else {
-                    if (c.getLambda() < fib.getLambdas().size()) { 
-                        return fib.getLambda(c.getLambda()).getWeight();
+                    if (c.getLambda() < fib.getLambdas().size()) {
+                        if (net.MODE == 0) return fib.getLambda(c.getLambda()).getWeight();
+                        else if (net.MODE == 1) return fib.getLambda(c.getLambda()).getEnergeticWeight();
                     }
                 }
             }

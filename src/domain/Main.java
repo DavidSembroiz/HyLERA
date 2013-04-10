@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 public class Main {
     
-    private static int TOTAL_STEPS = 2000;
+    private static int TOTAL_STEPS = 1000;
     
     
     public static void main(String[] args) {
@@ -37,14 +37,6 @@ public class Main {
             }
             ++step;
         }
-        boolean error = false;
-        for (Router r : net.getRouters()) {
-            if (r.getActualConsumption()*2 != r.getTotalConsumption()) {
-                error = true;
-                System.out.println("ERROR");
-            }
-        }
-        if (!error) System.out.println("OK!");
         System.out.println("Blocked connections: " + net.getBlockedConnections());
         System.out.println("Total connections: " + net.getTotalConnections());
         System.out.println("Percentaje of blocking: " + net.getBlockingPercentaje());

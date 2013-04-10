@@ -4,6 +4,7 @@ public class Lambda {
 
 	private int id;
 	private double residualBandwidth;
+        private double energeticWeight;
         private double weight;
         
         public Lambda(int id) {
@@ -20,7 +21,19 @@ public class Lambda {
             return weight;
         }
         public void setWeight(double weight) {
+            this.energeticWeight = weight;
+        }
+        public double getEnergeticWeight() {
+            return energeticWeight;
+        }
+        public void setEnergeticWeight(double weight) {
             this.weight = weight;
+        }
+        public void actualizeEnergeticWeight(double rs, double rd, double lon) {
+            if (rs == 0 && rd == 0) {
+                this.energeticWeight = Double.POSITIVE_INFINITY;
+            }
+            this.energeticWeight = rs + rd + (lon/500)*3;
         }
         public void actualizeWeight(double residual, double total) {
             this.weight = 1./(residual*Math.log10(total));
