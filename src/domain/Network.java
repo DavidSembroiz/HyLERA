@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class Network {
     
-        public int MODE = 1;
+        public int MODE = 0;
     
         private final int PATH_NOT_FOUND = -9999;
         private final int ORIGINAL_FIBERS = 53;
@@ -44,14 +44,14 @@ public class Network {
         
         public ArrayList<Connection> generateConnections() {
             ArrayList<Connection> cons = new ArrayList<>();
-            for (int i = 0; i < 10; ++i) {
-                int ttl = (int) Math.floor(Math.random()*10) + 1;
+            for (int i = 0; i < 1; ++i) {
+                int ttl = (int) Math.floor(Math.random()*100) + 1;
                 int source = (int) Math.floor(Math.random()*33) + 1;
                 int destination = (int) Math.floor(Math.random()*33) + 1;
                 while (source == destination) {
                     destination = (int) Math.floor(Math.random()*33) + 1;
                 }
-                double bw = Math.floor(Math.random()*10) + 1;
+                double bw = Math.floor(Math.random()*1000) + 1;
                 int index = getAvailableIndex();
                 //int index = getNextIndex();
                 Connection c = new Connection(index, ttl, bw, source, destination);
@@ -566,9 +566,9 @@ public class Network {
             //Collections.sort(routers, new CustomComparator());
             int cont = 1;
             for (Router r : routers) {
-                if (cont < 12) r.setConsumption(4.5);
+                if (cont < 12) r.setConsumption(3);
                 else if (cont < 23) r.setConsumption(3);
-                else r.setConsumption(1.5);
+                else r.setConsumption(3);
                 ++cont;
             }
         }

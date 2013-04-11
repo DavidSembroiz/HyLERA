@@ -33,7 +33,7 @@ public class Lambda {
             if (rs == 0 && rd == 0) {
                 this.energeticWeight = Double.POSITIVE_INFINITY;
             }
-            this.energeticWeight = rs + rd + (lon/500)*3;
+            else this.energeticWeight = rs + rd + Math.floor(lon/500)*3;
         }
         public void actualizeWeight(double residual, double total) {
             this.weight = 1./(residual*Math.log10(total));
