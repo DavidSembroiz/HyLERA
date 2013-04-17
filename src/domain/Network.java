@@ -3,6 +3,7 @@ package domain;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -21,6 +22,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Network {
+    
+        /**
+         * MODE 0: Blocking percentage aware
+         * MODE 1: Energy aware
+         */
     
         public int MODE = 1;
         private double TOTAL_CONSUMPTION = 0;
@@ -117,6 +123,12 @@ public class Network {
         }
         
         public void createConnectionsFile(int step) {
+            File f = new File("connections.txt");
+            if (!f.exists()) try {
+                f.createNewFile();
+            } catch (IOException ex) {
+                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+            }
             ArrayList<Connection> cons = generateConnections();
             try {
                 this.writeConnectionsToFile(step, cons);
@@ -132,6 +144,10 @@ public class Network {
             cons = this.readConnectionsFromFile(step, lines);
             return cons;
         }
+        
+        /** CONNECTION_SLOPE_IDX does not have increment here because it is executed always
+         * before a generateConnectionsFromFile() function.
+         */
         
         public ArrayList<Connection> generateConnections() {
             ArrayList<Connection> cons = new ArrayList<>();
