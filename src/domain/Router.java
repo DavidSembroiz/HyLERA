@@ -11,10 +11,11 @@ public class Router {
         private List<Integer> attachedFibers;
 	
 	
-	public Router(int id, String name, List<Integer> attachedFibers) {
+	public Router(int id, String name, double consumption, List<Integer> attachedFibers) {
 		this.id = id;
 		this.name = name;
-                this.attachedFibers = attachedFibers;
+                this.consumption = consumption;
+                this.attachedFibers = attachedFibers;      
         }
 
 	public int getId() {

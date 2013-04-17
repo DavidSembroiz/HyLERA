@@ -13,6 +13,7 @@ public class Connection {
 	private int fiber;
 	private int lambda;
         private List<Integer> lightpathFibers;
+        private double consumption;
         
         public Connection(int id, int timeToLive, double bandwidth, int source, int destination) {
 		this.id = id;
@@ -71,7 +72,12 @@ public class Connection {
         public void addLightpathFiber(int id) {
             this.lightpathFibers.add(id);
         }
-        
+        public void setConsumption(double c) {
+            this.consumption = c;
+        }
+        public double getConsumption() {
+            return this.consumption;
+        }
         public void printConnection() {
             System.out.println("------------------------------------------");
             System.out.println("Connection id: " + this.id);
