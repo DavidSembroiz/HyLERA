@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Main {
     
-    private static int TOTAL_STEPS = 2000;
+    private static int TOTAL_STEPS = 4000;
     
     
     

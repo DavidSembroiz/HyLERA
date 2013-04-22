@@ -33,7 +33,7 @@ public class Network {
         private double ACTUAL_CONSUMPTION = 0;
     
         private final int PATH_NOT_FOUND = -9999;
-        private final int ORIGINAL_FIBERS = 53;
+        public final int ORIGINAL_FIBERS = 53;
         private final double SMALL_ROUTER = 4.5;
         private final double MEDIUM_ROUTER = 3;
         private final double LARGE_ROUTER = 1.5;
@@ -209,9 +209,6 @@ public class Network {
                 if (l.getLightfiber().getId() == id)
                     return l.getLightfiber();
             }
-            /*for (Fiber f : fibers) {
-                if (f.getId() == id) return f;
-            }*/
             return null;
         }
         
@@ -223,25 +220,55 @@ public class Network {
             }
             return null;
         }
-	
-
-        public int findFiber(int source, int destination, int lambda) {
-            for (Fiber fib : fibers) {
+        
+        public Set<Fiber> getPlausibleFibers(List<Fiber> fibs, int source, int destination) {
+            Set<Fiber> res = new HashSet();
+            for (Fiber fib : fibs) {
                 if ((fib.getNode1() == source && fib.getNode2() == destination) ||
                     (fib.getNode2() == source && fib.getNode1() == destination)) {
-                    if (fib.getId() > this.ORIGINAL_FIBERS) {
-                        if (-fib.getLightLambda().getId() == lambda) {
-                            return fib.getId();
-                        }
-                    }
-                    else if (lambda <= fib.getNumLambdas()){
-                        if (fib.getLambda(lambda).getResidualBandwidth() != 0) {
-                            return fib.getId();
+                    res.add(fib);
+                }
+            }
+            return res;
+        }
+        
+        public int getShortestFiberByWeight(Set<Fiber> plausibleFibers, Connection c) {
+            double res = Double.MAX_VALUE;
+            int id = Integer.MAX_VALUE;
+            for (Fiber fib : plausibleFibers) {
+                List<Lambda> lambdas = fib.getLambdas();
+                for (Lambda lam : lambdas) {
+                    if (-lam.getId() == c.getLambda() || lam.getId() == c.getLambda()) {
+                        if (lam.getResidualBandwidth() >= c.getBandwidth())  {
+                            if (MODE == 0) {
+                                if (res > lam.getWeight()) {
+                                    res = lam.getWeight();
+                                    id = fib.getId();
+                                }
+                                else if (res == lam.getWeight()) {
+                                    if (id > fib.getId()) id = fib.getId();
+                                }
+                            }
+                            else if (MODE == 1) {
+                                if (res > lam.getEnergeticWeight()) {
+                                    res = lam.getEnergeticWeight();
+                                    id = fib.getId();
+                                }
+                                else if (res == lam.getEnergeticWeight()) {
+                                    if (id > fib.getId()) id = fib.getId();
+                                }
+                            }
                         }
                     }
                 }
             }
-            return PATH_NOT_FOUND;
+            return id;
+        }
+	
+
+        public int findFiber(int source, int destination, Connection c) {
+            Set<Fiber> plausibleFibers = this.getPlausibleFibers(fibers, source, destination);
+            return this.getShortestFiberByWeight(plausibleFibers, c);
         }
         
         public int findOriginalFiber(int source, int destination) {
@@ -374,7 +401,7 @@ public class Network {
                         physicalPath.add(source);
                     }
                     Router destination = it.next();
-                    int f = this.findFiber(source.getId(), destination.getId(), c.getLambda());
+                    int f = this.findFiber(source.getId(), destination.getId(), c);
                     if (f > this.ORIGINAL_FIBERS) {
                         Fiber lf = this.getLightfiber(f);
                         lf.decreaseLightBandwidth(c.getBandwidth());
@@ -651,7 +678,7 @@ public class Network {
                 fibers.add(new Fiber(46, 22, 23, 48, 10000, 165));
                 fibers.add(new Fiber(47, 20, 22, 64, 10000, 60));
                 fibers.add(new Fiber(48, 17, 22, 64, 10000, 450));
-                fibers.add(new Fiber(49, 12, 17, 64, 10000, 280));
+                fibers.add(new Fiber(49, 12, 17, 32, 10000, 280));
                 fibers.add(new Fiber(50, 11, 14, 32, 10000, 480));
                 
                 fibers.add(new Fiber(51, 14, 16, 32, 10000, 520));

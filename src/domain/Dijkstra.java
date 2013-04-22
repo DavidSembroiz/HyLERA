@@ -137,34 +137,31 @@ public class Dijkstra {
         }
         return neighbors;
     }
-
+    
+    
+    
     private double getDistance(Router node, Router neighbor) {
         List<Integer> attFibersId = node.getAttachedFibers();
+        Set<Fiber> plausibleFibers;
         List<Fiber> attFibers = new ArrayList<>();
         for (Integer fib : attFibersId) {
             if(fib <= ORIGINAL_FIBERS) attFibers.add(net.getFiber(fib));
             else attFibers.add(net.getLightfiber(fib));
         }
-        for (Fiber fib : attFibers) {
-            if ((fib.getNode1() == node.getId() && 
-                 fib.getNode2() == neighbor.getId()) ||
-                 (fib.getNode2() == node.getId() &&
-                  fib.getNode1() == neighbor.getId())) {
-                if (fib.getId() > ORIGINAL_FIBERS) {
-                    if (net.MODE == 0) return fib.getLightLambda().getWeight();
-                    else if (net.MODE == 1) return fib.getLightLambda().getEnergeticWeight();
-                }
-                else {
-                    if (c.getLambda() < fib.getLambdas().size()) {
-                        if (net.MODE == 0) return fib.getLambda(c.getLambda()).getWeight();
-                        else if (net.MODE == 1) return fib.getLambda(c.getLambda()).getEnergeticWeight();
-                    }
-                }
-            }
+        plausibleFibers = net.getPlausibleFibers(attFibers, node.getId(), neighbor.getId());
+        int id = net.getShortestFiberByWeight(plausibleFibers, c);
+        if (net.MODE == 0) {
+            if (id <= net.ORIGINAL_FIBERS) return net.getFiber(id).getLambda(c.getLambda()).getWeight();
+            return net.getLightfiber(id).getLightLambda().getWeight();
+        }
+        else if (net.MODE == 1) {
+            if (id <= net.ORIGINAL_FIBERS) return net.getFiber(id).getLambda(c.getLambda()).getEnergeticWeight();
+            return net.getLightfiber(id).getLightLambda().getEnergeticWeight();
         }
         return Double.MAX_VALUE;
     }
     
+
     private LinkedList<Router> getPath(Router node) {
         LinkedList<Router> path = new LinkedList<>();
         Router step = node;
