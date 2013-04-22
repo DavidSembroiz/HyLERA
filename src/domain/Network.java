@@ -28,7 +28,7 @@ public class Network {
          * MODE 1: Energy aware
          */
     
-        public int MODE = 1;
+        public int MODE = 0;
         private double TOTAL_CONSUMPTION = 0;
         private double ACTUAL_CONSUMPTION = 0;
     
@@ -205,9 +205,13 @@ public class Network {
         }
         
         public Fiber getLightfiber(int id) {
-            for (Fiber f : fibers) {
-                if (f.getId() == id) return f;
+            for (Lightpath l : lightpaths) {
+                if (l.getLightfiber().getId() == id)
+                    return l.getLightfiber();
             }
+            /*for (Fiber f : fibers) {
+                if (f.getId() == id) return f;
+            }*/
             return null;
         }
         

@@ -4,11 +4,13 @@ import java.util.ArrayList;
 
 public class Main {
     
-    private static int TOTAL_STEPS = 500;
+    private static int TOTAL_STEPS = 2000;
+    
+    
     
     
     public static void main(String[] args) {
-        
+       
         int step = 0;
         Network net = new Network();
         Dijkstra dij = new Dijkstra(net);
@@ -16,10 +18,11 @@ public class Main {
             System.out.println("------------------------------------------STEP " + step + "-----------------------------------------");
             net.decreaseTimesToLive();
             //net.createConnectionsFile(step);
-            ArrayList<Connection> connections = net.generateConnectionsFromFile(step);
+            //ArrayList<Connection> connections = net.generateConnectionsFromFile(step);
+            ArrayList<Connection> connections = net.generateConnections();
             for (Connection c : connections) {
                 dij.execute(net.getRouter(c.getSource()), c);
-                net.printConnection(c);
+                //net.printConnection(c);
             }
             ++step;
         }

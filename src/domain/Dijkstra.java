@@ -49,7 +49,7 @@ public class Dijkstra {
                 unsettledRouters = new HashSet<>();
                 distance = new HashMap<>();
                 predecessors = new HashMap<>();
-                distance.put(source, 0.);
+                distance.put(source, 0.0);
                 unsettledRouters.add(source);
                 while (!unsettledRouters.isEmpty()) {
                     Router node = getMinimum(unsettledRouters);
@@ -159,7 +159,7 @@ public class Dijkstra {
                 }
             }
         }
-        return Integer.MAX_VALUE;
+        return Double.MAX_VALUE;
     }
     
     private LinkedList<Router> getPath(Router node) {
