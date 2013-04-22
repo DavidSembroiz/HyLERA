@@ -1,15 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package domain;
 
 import java.util.LinkedList;
 
-/**
- *
- * @author David Sembroiz
- */
+
 public class Lightpath {
     
     private LinkedList<Router> path;

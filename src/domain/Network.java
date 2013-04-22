@@ -241,7 +241,7 @@ public class Network {
                     }
                 }
             }
-            return -9999;
+            return PATH_NOT_FOUND;
         }
         
         public int findOriginalFiber(int source, int destination) {
@@ -252,7 +252,7 @@ public class Network {
                     return fib.getId();
                 }
             }
-            return -9999;
+            return PATH_NOT_FOUND;
         }
 
 

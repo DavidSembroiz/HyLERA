@@ -82,6 +82,9 @@ public class Dijkstra {
         for (Router neighbor : adjacentRouters) {
             shortestDistance = getShortestDistance(node);
             dist = getDistance(node, neighbor);
+            if (shortestDistance < 0 || dist < 0 || getShortestDistance(neighbor) < 0) {
+                System.out.println("Break");
+            }
             if (getShortestDistance(neighbor) > shortestDistance + dist) {
                 distance.put(neighbor, shortestDistance + dist);
                 predecessors.put(neighbor, node);
