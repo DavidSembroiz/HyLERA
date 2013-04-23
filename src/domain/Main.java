@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Main {
     
-    private static int TOTAL_STEPS = 4000;
+    private static int TOTAL_STEPS = 1;
     
     
     
@@ -22,7 +22,7 @@ public class Main {
             ArrayList<Connection> connections = net.generateConnections();
             for (Connection c : connections) {
                 dij.execute(net.getRouter(c.getSource()), c);
-                //net.printConnection(c);
+                net.printConnection(c);
             }
             ++step;
         }

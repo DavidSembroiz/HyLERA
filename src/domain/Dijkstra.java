@@ -111,6 +111,16 @@ public class Dijkstra {
         return d;
     }
     
+    private Router insertNeighbor(Fiber f, int node) {
+        if (f.getNode1() == node) {
+            return net.getRouter(f.getNode2());
+        }
+        else if (f.getNode2() == node) {
+            return net.getRouter(f.getNode1());
+        }
+        return null;
+    }
+    
     private List<Router> getNeighbors(Router node) {
         List<Lambda> lambdas;
         boolean insert;
@@ -119,21 +129,23 @@ public class Dijkstra {
         for (Fiber fib : attFibers) {
             lambdas = fib.getLambdas();
             insert = false;
-            for (Lambda lam : lambdas) {
+            for (Iterator<Lambda> it = lambdas.iterator(); !insert && it.hasNext();) {
+                Lambda lam = it.next();
                 if ((-lam.getId() == c.getLambda() ||
                     lam.getId() == c.getLambda()) && 
                     lam.getResidualBandwidth() >= c.getBandwidth()) {
+                    neighbors.add(insertNeighbor(fib, node.getId()));
                     insert = true;
                 }
             }
-            if (insert) {
+            /*if (insert) {
                 if (fib.getNode1() == node.getId()) {
                     neighbors.add(net.getRouter(fib.getNode2()));
                 }
                 else if (fib.getNode2() == node.getId()) {
                     neighbors.add(net.getRouter(fib.getNode1()));
                 }
-            }
+            }*/
         }
         return neighbors;
     }
