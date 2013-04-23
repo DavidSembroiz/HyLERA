@@ -83,7 +83,7 @@ public class Dijkstra {
             shortestDistance = getShortestDistance(node);
             dist = getDistance(node, neighbor);
             if (shortestDistance < 0 || dist < 0 || getShortestDistance(neighbor) < 0) {
-                System.out.println("Break");
+                System.out.println("Negative Distance");
             }
             if (getShortestDistance(neighbor) > shortestDistance + dist) {
                 distance.put(neighbor, shortestDistance + dist);
@@ -168,6 +168,9 @@ public class Dijkstra {
         }
         else if (net.MODE == 1) {
             if (id <= net.ORIGINAL_FIBERS) return net.getFiber(id).getLambda(c.getLambda()).getEnergeticWeight();
+            if (net.getLightfiber(id) == null) {
+                System.out.println("Lightpath not found");
+            }
             return net.getLightfiber(id).getLightLambda().getEnergeticWeight();
         }
         return Double.MAX_VALUE;

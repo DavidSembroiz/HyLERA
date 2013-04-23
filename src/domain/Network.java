@@ -28,7 +28,7 @@ public class Network {
          * MODE 1: Energy aware
          */
     
-        public int MODE = 0;
+        public int MODE = 1;
         private double TOTAL_CONSUMPTION = 0;
         private double ACTUAL_CONSUMPTION = 0;
     
@@ -159,7 +159,7 @@ public class Network {
                 while (source == destination) {
                     destination = (int) Math.ceil(Math.random()*34);
                 }
-                double bw = 40;//Math.ceil(Math.random()*1000);
+                double bw = 500;//Math.ceil(Math.random()*1000);
                 //int index = getAvailableIndex();
                 int index = getNextIndex();
                 Connection c = new Connection(index, ttl, bw, source, destination);
@@ -425,9 +425,12 @@ public class Network {
                         physicalPath.add(destination);
                         fi.decreaseBandwidth(fi.getTotalBandwidth(), c.getLambda());
                         fi.actualizeLambdaWeight(c.getLambda(),
-                            fi.getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
+                            fi.getLambda(c.getLambda()).getResidualBandwidth(),
                             fi.getTotalBandwidth());
                         fi.setInfinityLambdaEnergeticWeight(c.getLambda());
+                        if (fi.getLambda(c.getLambda()).getEnergeticWeight() != fi.getLambda(c.getLambda()).getWeight()) {
+                            System.out.println("Wrong Weights");
+                        }
                     }
                     source = destination;
                 }
@@ -448,7 +451,7 @@ public class Network {
                 Fiber fi = this.getFiber(f);
                 fi.increaseBandwidth(fi.getTotalBandwidth(), c.getLambda());
                 fi.actualizeLambdaWeight(c.getLambda(),
-                            fi.getLambdas().get(c.getLambda() - 1).getResidualBandwidth(),
+                            fi.getLambda(c.getLambda()).getResidualBandwidth(),
                             fi.getTotalBandwidth());
                 fi.actualizeLambdaEnergeticWeight(c.getLambda(),
                                                   getRouter(fi.getNode1()).getConsumption(), 
@@ -580,6 +583,9 @@ public class Network {
                 fibers.remove(rem);
                 lightpaths.remove(lf);
             }
+            else {
+                System.out.println("Should not happen");
+            }
         }
         
         private void generateRouters() {
@@ -645,7 +651,7 @@ public class Network {
 		fibers.add(new Fiber(16, 2, 6, 16, 10000, 1050));
 		fibers.add(new Fiber(17, 1, 2, 16, 10000, 505));
 		fibers.add(new Fiber(18, 1, 5, 8, 2500, 1580));
-		fibers.add(new Fiber(19, 4, 5, 16, 10000, 460));
+		fibers.add(new Fiber(19, 4, 5, 16, 0, 460));
 		fibers.add(new Fiber(20, 29, 30, 16, 10000, 595));
                 
                 fibers.add(new Fiber(21, 29, 31, 8, 2500, 850));
