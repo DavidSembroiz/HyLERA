@@ -12,9 +12,9 @@ import java.util.Set;
 
 public class Dijkstra {
     
-    private final int PATH_NOT_FOUND = -9999;
+    /*private final int PATH_NOT_FOUND = -9999;
     private final int LAMBDA_NOT_SETTLED = -8888;
-    private final int ORIGINAL_FIBERS = 53;
+    private final int ORIGINAL_FIBERS = 53;*/
     
     private final Network net;
     private Set<Router> settledRouters;
@@ -35,7 +35,7 @@ public class Dijkstra {
         plausibleLambdas = net.getPlausibleLambdas(c);
         LinkedList<Router> path = null;
         double minDistance = Double.MAX_VALUE;
-        int finalLambda = LAMBDA_NOT_SETTLED;
+        int finalLambda = net.LAMBDA_NOT_SETTLED;
         found = false;
         Fiber lp;
         lp = net.lightpathAvailable(c);
@@ -67,7 +67,7 @@ public class Dijkstra {
                 }
             }
             if (!found) {
-                c.setLambda(PATH_NOT_FOUND);
+                c.setLambda(net.PATH_NOT_FOUND);
             }
             else {
                 c.setLambda(finalLambda);
@@ -121,6 +121,20 @@ public class Dijkstra {
         return null;
     }
     
+    private boolean isSettled(Fiber f, int node) {
+        if (f.getNode1() == node) {
+            if (settledRouters.contains(net.getRouter(f.getNode2()))) {
+                return true;
+            }
+        }
+        else if (f.getNode2() == node) {
+            if (settledRouters.contains(net.getRouter(f.getNode1()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     private List<Router> getNeighbors(Router node) {
         List<Lambda> lambdas;
         boolean insert;
@@ -131,7 +145,7 @@ public class Dijkstra {
             insert = false;
             for (Iterator<Lambda> it = lambdas.iterator(); !insert && it.hasNext();) {
                 Lambda lam = it.next();
-                if ((-lam.getId() == c.getLambda() ||
+                if (!isSettled(fib, node.getId()) && (-lam.getId() == c.getLambda() ||
                     lam.getId() == c.getLambda()) && 
                     lam.getResidualBandwidth() >= c.getBandwidth()) {
                     neighbors.add(insertNeighbor(fib, node.getId()));
@@ -157,7 +171,7 @@ public class Dijkstra {
         Set<Fiber> plausibleFibers;
         List<Fiber> attFibers = new ArrayList<>();
         for (Integer fib : attFibersId) {
-            if(fib <= ORIGINAL_FIBERS) attFibers.add(net.getFiber(fib));
+            if(fib <= net.ORIGINAL_FIBERS) attFibers.add(net.getFiber(fib));
             else attFibers.add(net.getLightfiber(fib));
         }
         plausibleFibers = net.getPlausibleFibers(attFibers, node.getId(), neighbor.getId());

@@ -28,11 +28,12 @@ public class Network {
          * MODE 1: Energy aware
          */
     
-        public int MODE = 1;
+        public int MODE = 0;
         private double TOTAL_CONSUMPTION = 0;
         private double ACTUAL_CONSUMPTION = 0;
     
-        private final int PATH_NOT_FOUND = -9999;
+        public final int PATH_NOT_FOUND = -9999;
+        public final int LAMBDA_NOT_SETTLED = -8888;
         public final int ORIGINAL_FIBERS = 53;
         private final double SMALL_ROUTER = 4.5;
         private final double MEDIUM_ROUTER = 3;
@@ -159,7 +160,7 @@ public class Network {
                 while (source == destination) {
                     destination = (int) Math.ceil(Math.random()*34);
                 }
-                double bw = 500;//Math.ceil(Math.random()*1000);
+                double bw = 5;//Math.ceil(Math.random()*1000);
                 //int index = getAvailableIndex();
                 int index = getNextIndex();
                 Connection c = new Connection(index, ttl, bw, source, destination);
@@ -348,16 +349,7 @@ public class Network {
                 }
             }
         }
-        
-        /*private void increasePathConsumption(List<Integer> path, double bw) {
-            for (Integer i : path) {
-                LinkedList<Router> physicalPath = this.getLightpath(i).getPath();
-                for (Router r : physicalPath) {
-                    r.increaseConsumption(bw);
-                }
-            }
-        }*/
-        
+
         private void computeConnectionConsumption(Connection c) {
             double cons = 0;
             for (Integer i : c.getLightpathFibers()) {
@@ -473,20 +465,12 @@ public class Network {
             return null;
         }
         
-        /*private void increaseRouterConsumption(Lightpath p, double bw) {
-            LinkedList<Router> path = p.getPath();
-            for (Router r : path) {
-                r.increaseConsumption(bw);
-            }
-        }*/
-        
         public void assignLightpath(Connection c, Fiber f) {
             this.enrutedConnections.add(c);
             c.setLambda(-f.getLightLambda().getId());
             c.addLightpathFiber(f.getId());
             f.getLightLambda().decreaseBandwidth(c.getBandwidth());
             f.actualizeLightLambdaWeight(f.getLightLambda().getResidualBandwidth(), f.getTotalBandwidth());
-            //increaseRouterConsumption(this.getLightpath(f.getId()), c.getBandwidth());
         }
         
         private int getAvailableId() {
@@ -532,17 +516,7 @@ public class Network {
             lightpaths.add(light);
         }
         
-        /*private void decreasePathConsumption(List<Integer> path, double bw) {
-            for (Integer i : path) {
-                LinkedList<Router> physicalPath = this.getLightpath(i).getPath();
-                for (Router r : physicalPath) {
-                    r.decreaseConsumption(bw);
-                }
-            }
-        }*/
-        
         public void increaseLightpath(Connection c) {
-            //decreasePathConsumption(c.getLightpathFibers(), c.getBandwidth());
             boolean delete;
             Iterator<Integer> ids = c.getLightpathFibers().iterator();
             while(ids.hasNext()) {
@@ -742,6 +716,36 @@ public class Network {
                         printLambda(l);
                     }
                 }
+            }
+        }
+        
+        public void deleteFiles() throws IOException {
+            File f = new File("result.txt");
+            f.delete();
+        }
+        
+        public void printConnectionToFile(Connection c) throws IOException {
+            try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("result.txt", true)))) {
+                writer.println("------------------------------------------");
+                writer.println("Connection id: " + Integer.toString(c.getId()));
+                writer.println("Time to live: " + Integer.toString(c.getTimeToLive()));
+                writer.println("Source: " + Integer.toString(c.getSource()));
+                writer.println("Destination: " + Integer.toString(c.getDestination()));
+                writer.println("Lambda: " + Integer.toString(c.getLambda()));
+                writer.println("Bandwidth: " + Double.toString(c.getBandwidth()));
+                writer.println("LightPath Fibers: " + c.getLightpathFibers());
+                for (Integer i : c.getLightpathFibers()) {
+                    writer.println(i);
+                    writer.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode1()).getName());
+                    LinkedList<Router> path = this.getLightpath(i).getPath();
+                    for (Router r : path) {
+                        writer.println("-----" + r.getName());
+                    }
+                    writer.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode2()).getName());
+                }
+                writer.close();
+            } catch (FileNotFoundException | UnsupportedEncodingException ex) {
+                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         
