@@ -24,12 +24,23 @@ import java.util.logging.Logger;
 public class Network {
     
         /**
-         * MODE 0: Blocking percentage aware
-         * MODE 1: Energy aware
+         * Modo de actuacion de la red:
+         * -- MODE 0: Blocking percentage aware
+         * -- MODE 1: Energy aware
          */
-    
+
         public int MODE = 0;
+        
+        /**
+         * Consumo total de la red.
+         */
+        
         private double TOTAL_CONSUMPTION = 0;
+        
+        /**
+         * Consumo actual de la red.
+         */
+        
         private double ACTUAL_CONSUMPTION = 0;
     
         public final int PATH_NOT_FOUND = -9999;

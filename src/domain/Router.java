@@ -9,6 +9,16 @@ public class Router {
         private double totalBandwidth;
         private double consumption;
         private List<Integer> attachedFibers;
+        
+        /**
+         * Crea un nuevo Router que representara un nodo de la red.
+         * 
+         * @param id identificador unico del router.
+         * @param name nombre del pais donde esta situado el router.
+         * @param consumption consumo fijo del router por cada GB
+         * @param attachedFibers lista de identificadores de las fibras conectadas
+         * al router.
+         */
 	
 	
 	public Router(int id, String name, double consumption, List<Integer> attachedFibers) {

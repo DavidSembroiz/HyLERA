@@ -15,6 +15,17 @@ public class Connection {
         private List<Integer> lightpathFibers;
         private double consumption;
         
+        /**
+         * Devuelve una nueva conexion con los valores necesarios para intentar 
+         * enrutarla dentro de la red.
+         * 
+         * @param id identificador unico de la conexion dentro de la red.
+         * @param timeToLive unidades de tiempo que estara la conexion dentro de la red.
+         * @param bandwidth cantidad de ancho de banda requerido para la conexion.
+         * @param source router de inicio de la conexion.
+         * @param destination router de destino de la conexion.
+         */
+        
         public Connection(int id, int timeToLive, double bandwidth, int source, int destination) {
 		this.id = id;
 		this.timeToLive = timeToLive;
@@ -77,11 +88,5 @@ public class Connection {
         }
         public double getConsumption() {
             return this.consumption;
-        }
-        public void printConnection() {
-            System.out.println("------------------------------------------");
-            System.out.println("Connection id: " + this.id);
-            System.out.println("Lambda: " + this.lambda);
-            System.out.println("LightPath Fibers: " + this.lightpathFibers);
         }
 }
