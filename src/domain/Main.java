@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class Main {
     
-    private static int TOTAL_STEPS = 1000;
+    private static int TOTAL_STEPS = 2;
     
     
     public static void main(String[] args) throws IOException {
@@ -18,12 +18,12 @@ public class Main {
             System.out.println("------------------------------------------STEP " + step + "-----------------------------------------");
             net.decreaseTimesToLive();
             //net.createConnectionsFile(step);
-            ArrayList<Connection> connections = net.generateConnectionsFromFile(step);
-            //ArrayList<Connection> connections = net.generateConnections();
+            //ArrayList<Connection> connections = net.generateConnectionsFromFile(step);
+            ArrayList<Connection> connections = net.generateConnections();
             for (Connection c : connections) {
                 dij.execute(net.getRouter(c.getSource()), c);
                 //net.printConnection(c);
-                net.printConnectionToFile(c);
+                //net.printConnectionToFile(c);
             }
             ++step;
         }

@@ -51,7 +51,9 @@ public class Network {
         private final double LARGE_ROUTER = 1.5;
         private final int[] CONNECTION_SLOPE = {1, 2, 3, 4, 5, 6, 5, 4, 3, 2};
         private int CONNECTION_SLOPE_IDX = 0;
-        private int CONNECTION_N = 10;
+        private int CONNECTION_N = 2;
+        private double[] NODE_PROBABILITY;
+        private double[] NODE_SUM;
         
 
 	private List<Router> routers;
@@ -78,6 +80,7 @@ public class Network {
             generateRouters();
             setTotalRouterBandwidths();
             generateLambdas();
+            calculateNodeSum();
 	}
         
         public double getActualConsumption() {
@@ -157,22 +160,62 @@ public class Network {
             return cons;
         }
         
+        private void calculateNodeSum() {
+            this.NODE_PROBABILITY = new double[34];
+            for (int i = 0; i < 34; ++i) {
+                this.NODE_PROBABILITY[i] = 0.0294117647;
+            }
+            this.NODE_SUM = new double[34];
+            this.NODE_SUM[0] = this.NODE_PROBABILITY[0];
+            for (int i = 1; i < this.NODE_PROBABILITY.length; ++i) {
+                this.NODE_SUM[i] = this.NODE_SUM[i - 1] + this.NODE_PROBABILITY[i];
+            }
+        }
+        
+        private int getNode() {
+            double rnd = Math.random();
+            for (int i = 0; i < this.NODE_SUM.length; ++i) {
+                if (rnd < this.NODE_SUM[i]) {
+                    return i + 1;
+                }
+            }
+            return this.PATH_NOT_FOUND;
+        }
+        
+        /**
+         * Calcular el numero de lambdas adheridas a cada router para calcular la
+         * probabilidad de aparicion.
+         */
+        
+        /**
+         * UNFINISHED
+         */
+        
+        private void calculateNumLambdas() {
+            int sum;
+            for (int i = 0; i < this.routers.size(); ++i) {
+                sum = 0;
+                List<Integer>  fib = this.routers.get(i).getAttachedFibers();
+                for (int j = 0; j < this.routers.get(i).getAttachedFibers().size(); ++j) {
+                }
+            }
+        }
+        
         /** CONNECTION_SLOPE_IDX does not have increment here because it is executed always
          * before a generateConnectionsFromFile() function.
          */
         
         public ArrayList<Connection> generateConnections() {
             ArrayList<Connection> cons = new ArrayList<>();
-            int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX)%CONNECTION_SLOPE.length];
+            int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
             for (int i = 0; i < CONNECTION_N * slope; ++i) {
-                int ttl = 50;//(int) Math.ceil(Math.random()*100);
-                int source = (int) Math.ceil(Math.random()*34);
-                int destination = (int) Math.ceil(Math.random()*34);
+                int ttl = 15;
+                int source = getNode();
+                int destination = getNode();
                 while (source == destination) {
-                    destination = (int) Math.ceil(Math.random()*34);
+                    destination = getNode();
                 }
-                double bw = 5;//Math.ceil(Math.random()*1000);
-                //int index = getAvailableIndex();
+                double bw = 5;
                 int index = getNextIndex();
                 Connection c = new Connection(index, ttl, bw, source, destination);
                 cons.add(c);
@@ -183,18 +226,6 @@ public class Network {
         private int getNextIndex() {
             return ++connectionIndex;
         }
-        
-        /*private int getAvailableIndex() {
-            for (int i = 1; i < Integer.MAX_VALUE; ++i) {
-                boolean found = false;
-                for (Iterator<Connection> it = this.enrutedConnections.iterator(); !found && it.hasNext();) {
-                    Connection c = it.next();
-                    if (c.getId() == i) found = true;
-                }
-                if (!found) return i;
-            }
-            return Integer.MAX_VALUE;
-        }*/
         
         public double getBlockingPercentaje() {
             return ((double)blockedConnections/totalConnections)*100;
