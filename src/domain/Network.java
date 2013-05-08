@@ -29,7 +29,7 @@ public class Network {
          * -- MODE 1: Energy aware
          */
 
-        public int MODE = 0;
+        public int MODE = 1;
         
         /**
          * Consumo total de la red.
@@ -80,6 +80,7 @@ public class Network {
             generateRouters();
             setTotalRouterBandwidths();
             generateLambdas();
+            calculateNumLambdas();
             calculateNodeSum();
 	}
         
@@ -160,11 +161,21 @@ public class Network {
             return cons;
         }
         
-        private void calculateNodeSum() {
+        public void calculateNumLambdas() {
+            int sum;
             this.NODE_PROBABILITY = new double[34];
-            for (int i = 0; i < 34; ++i) {
-                this.NODE_PROBABILITY[i] = 0.0294117647;
+            for (int i = 0; i < this.routers.size(); ++i) {
+                sum = 0;
+                List<Integer>  fib = this.routers.get(i).getAttachedFibers();
+                for (int j = 0; j < fib.size(); ++j) {
+                    sum += this.getFiber(fib.get(j)).getNumLambdas();
+                }
+                this.NODE_PROBABILITY[i] = sum / 2772.0;
+                System.out.println(this.routers.get(i).getName() + " " + sum);
             }
+        }
+        
+        private void calculateNodeSum() {
             this.NODE_SUM = new double[34];
             this.NODE_SUM[0] = this.NODE_PROBABILITY[0];
             for (int i = 1; i < this.NODE_PROBABILITY.length; ++i) {
@@ -172,34 +183,24 @@ public class Network {
             }
         }
         
+        public void printNodeDistribution() {
+            for (int i = 0; i < this.NODE_PROBABILITY.length; ++i) {
+                System.out.println(this.routers.get(i).getName() + " "
+                                   + NODE_PROBABILITY[i] + " "
+                                   + NODE_SUM[i]);
+            }
+        }
+        
         private int getNode() {
             double rnd = Math.random();
             for (int i = 0; i < this.NODE_SUM.length; ++i) {
-                if (rnd < this.NODE_SUM[i]) {
+                if (rnd <= this.NODE_SUM[i]) {
                     return i + 1;
                 }
             }
             return this.PATH_NOT_FOUND;
         }
-        
-        /**
-         * Calcular el numero de lambdas adheridas a cada router para calcular la
-         * probabilidad de aparicion.
-         */
-        
-        /**
-         * UNFINISHED
-         */
-        
-        private void calculateNumLambdas() {
-            int sum;
-            for (int i = 0; i < this.routers.size(); ++i) {
-                sum = 0;
-                List<Integer>  fib = this.routers.get(i).getAttachedFibers();
-                for (int j = 0; j < this.routers.get(i).getAttachedFibers().size(); ++j) {
-                }
-            }
-        }
+
         
         /** CONNECTION_SLOPE_IDX does not have increment here because it is executed always
          * before a generateConnectionsFromFile() function.
@@ -207,7 +208,7 @@ public class Network {
         
         public ArrayList<Connection> generateConnections() {
             ArrayList<Connection> cons = new ArrayList<>();
-            int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
+            int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX)%CONNECTION_SLOPE.length];
             for (int i = 0; i < CONNECTION_N * slope; ++i) {
                 int ttl = 15;
                 int source = getNode();
