@@ -29,7 +29,7 @@ public class Network {
          * -- MODE 1: Energy aware
          */
 
-        public int MODE = 1;
+        public int MODE = 0;
         
         /**
          * Consumo total de la red.
@@ -51,7 +51,7 @@ public class Network {
         private final double LARGE_ROUTER = 1.5;
         private final int[] CONNECTION_SLOPE = {1, 2, 3, 4, 5, 6, 5, 4, 3, 2};
         private int CONNECTION_SLOPE_IDX = 0;
-        private int CONNECTION_N = 2;
+        private int CONNECTION_N = 5;
         private double[] NODE_PROBABILITY;
         private double[] NODE_SUM;
         
@@ -170,8 +170,12 @@ public class Network {
                 for (int j = 0; j < fib.size(); ++j) {
                     sum += this.getFiber(fib.get(j)).getNumLambdas();
                 }
+                /**
+                 * 2772: number of total lambdas in the whole network
+                 */
+                
                 this.NODE_PROBABILITY[i] = sum / 2772.0;
-                System.out.println(this.routers.get(i).getName() + " " + sum);
+                //System.out.println(this.routers.get(i).getName() + " " + sum);
             }
         }
         
@@ -374,7 +378,12 @@ public class Network {
                     }
                 }
             }
-            Collections.reverse(lambdas);
+            /**
+             * Reverse the lambda list to get first the higher ones, seems
+             * to work better without reversing.
+             */
+            
+            //Collections.reverse(lambdas);
             return lambdas;
         }
         

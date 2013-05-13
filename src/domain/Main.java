@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class Main {
     
-    private static int TOTAL_STEPS = 2000;
+    private static int TOTAL_STEPS = 1000;
     
     
     public static void main(String[] args) throws IOException {
@@ -23,7 +23,7 @@ public class Main {
             //ArrayList<Connection> connections = net.generateConnections();
             for (Connection c : connections) {
                 dij.execute(net.getRouter(c.getSource()), c);
-                net.printConnection(c);
+                //net.printConnection(c);
                 //net.printConnectionToFile(c);
             }
             ++step;

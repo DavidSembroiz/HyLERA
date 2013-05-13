@@ -11,11 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class Dijkstra {
-    
-    /*private final int PATH_NOT_FOUND = -9999;
-    private final int LAMBDA_NOT_SETTLED = -8888;
-    private final int ORIGINAL_FIBERS = 53;*/
-    
+   
     private final Network net;
     private Set<Router> settledRouters;
     private Set<Router> unsettledRouters;
@@ -32,7 +28,6 @@ public class Dijkstra {
     public void execute(Router source, Connection con) {
         this.c = con;
         net.increaseTotalConnections();
-        plausibleLambdas = net.getPlausibleLambdas(c);
         LinkedList<Router> path = null;
         double minDistance = Double.MAX_VALUE;
         int finalLambda = net.LAMBDA_NOT_SETTLED;
@@ -43,6 +38,7 @@ public class Dijkstra {
             net.assignLightpath(c, lp);
         }
         else {
+            plausibleLambdas = net.getPlausibleLambdas(c);
             for (Iterator<Integer> it = plausibleLambdas.iterator(); it.hasNext();) {
                 c.setLambda(it.next());
                 settledRouters = new HashSet<>();
