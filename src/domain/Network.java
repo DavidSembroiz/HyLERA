@@ -46,12 +46,25 @@ public class Network {
         public final int PATH_NOT_FOUND = -9999;
         public final int LAMBDA_NOT_SETTLED = -8888;
         public final int ORIGINAL_FIBERS = 53;
+        
+        /**
+         * Consumo en W/Gbps de los diferentes tipos de routers
+         * (+ consumo implica que el router es mas pequeño
+         */
+        
         private final double SMALL_ROUTER = 10;
         private final double MEDIUM_ROUTER = 5;
         private final double LARGE_ROUTER = 1;
+        
+        /**
+         * Parametros para simular la grafica del numero de conexiones en la
+         * red segun el momento de tiempo
+         */
+        
         private final int[] CONNECTION_SLOPE = {1, 2, 3, 4, 4, 4, 3, 2, 1};
         private int CONNECTION_SLOPE_IDX = 0;
         private int CONNECTION_N = 5;
+        
         private double[] NODE_PROBABILITY;
         private double[] NODE_SUM;
         
