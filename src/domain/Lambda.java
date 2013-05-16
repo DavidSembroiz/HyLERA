@@ -113,7 +113,6 @@ public class Lambda {
 
         public void decreaseBandwidth(double bandwidth) {
             this.residualBandwidth -= bandwidth;
-            if (this.residualBandwidth < 0) System.out.println("ERROR RESIDUAL NEGATIVE");
         }
         
         /**

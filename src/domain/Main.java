@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class Main {
     
-    private static int TOTAL_STEPS = 1000;
+    private static int TOTAL_STEPS = 900;
     
     
     public static void main(String[] args) throws IOException {
@@ -16,11 +16,20 @@ public class Main {
         //net.deleteFiles();
         //net.printNodeDistribution();
         while (step < TOTAL_STEPS) {
-            System.out.println("------------------------------------------STEP " + step + "-----------------------------------------");
+            //System.out.println("------------------------------------------STEP " + step + "-----------------------------------------");
             net.decreaseTimesToLive();
             //net.createConnectionsFile(step);
-            ArrayList<Connection> connections = net.generateConnectionsFromFile(step);
-            //ArrayList<Connection> connections = net.generateConnections();
+            //ArrayList<Connection> connections = net.generateConnectionsFromFile(step);
+            ArrayList<Connection> connections = net.generateConnections();
+            
+            if (step > 0 && step%40 == 0) {
+                System.out.println("Blocked connections: " + net.getBlockedConnections());
+                System.out.println("Total connections: " + net.getTotalConnections());
+                System.out.println("Percentaje of blocking: " + net.getBlockingPercentaje());
+                System.out.println("Actual Network Consumption: " + net.getActualConsumption());
+                System.out.println("Total Network Consumption: " + net.getTotalConsumption());
+            }
+            
             for (Connection c : connections) {
                 dij.execute(net.getRouter(c.getSource()), c);
                 //net.printConnection(c);

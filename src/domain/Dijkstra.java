@@ -92,10 +92,13 @@ public class Dijkstra {
     private Router getMinimum(Set<Router> r) {
         Router min = null;
         for (Router rou : r) {
-            if (min == null) min = rou;
+            if (min == null) {
+                min = rou;
+            }
             else {
-                if (getShortestDistance(rou) < getShortestDistance(min))
+                if (getShortestDistance(rou) < getShortestDistance(min)) {
                     min = rou;
+                }
             }
         }
         return min;
@@ -103,7 +106,9 @@ public class Dijkstra {
 
     private double getShortestDistance(Router rou) {
         Double d = distance.get(rou);
-        if (d == null) return Double.MAX_VALUE;
+        if (d == null) {
+            return Double.MAX_VALUE;
+        }
         return d;
     }
     
@@ -167,17 +172,32 @@ public class Dijkstra {
         Set<Fiber> plausibleFibers;
         List<Fiber> attFibers = new ArrayList<>();
         for (Integer fib : attFibersId) {
-            if(fib <= net.ORIGINAL_FIBERS) attFibers.add(net.getFiber(fib));
-            else attFibers.add(net.getLightfiber(fib));
+            if(fib <= net.ORIGINAL_FIBERS) {
+                attFibers.add(net.getFiber(fib));
+            }
+            else {
+                attFibers.add(net.getLightfiber(fib));
+            }
         }
         plausibleFibers = net.getPlausibleFibers(attFibers, node.getId(), neighbor.getId());
         int id = net.getShortestFiberByWeight(plausibleFibers, c);
+        
+        /**
+         * Comprobar variables para cambiar de modo si se pretende usar
+         * el doble modo
+         */
+
+        
         if (net.MODE == 0) {
-            if (id <= net.ORIGINAL_FIBERS) return net.getFiber(id).getLambda(c.getLambda()).getWeight();
+            if (id <= net.ORIGINAL_FIBERS) {
+                return net.getFiber(id).getLambda(c.getLambda()).getWeight();
+            }
             return net.getLightfiber(id).getLightLambda().getWeight();
         }
         else if (net.MODE == 1) {
-            if (id <= net.ORIGINAL_FIBERS) return net.getFiber(id).getLambda(c.getLambda()).getEnergeticWeight();
+            if (id <= net.ORIGINAL_FIBERS) {
+                return net.getFiber(id).getLambda(c.getLambda()).getEnergeticWeight();
+            }
             if (net.getLightfiber(id) == null) {
                 System.out.println("Lightpath not found");
             }
@@ -190,7 +210,9 @@ public class Dijkstra {
     private LinkedList<Router> getPath(Router node) {
         LinkedList<Router> path = new LinkedList<>();
         Router step = node;
-        if (predecessors.get(step) == null) return null;
+        if (predecessors.get(step) == null) {
+            return null;
+        }
         path.add(step);
         while (predecessors.get(step) != null) {
             step = predecessors.get(step);
