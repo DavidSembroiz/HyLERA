@@ -53,6 +53,7 @@ public class Network {
             {1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1};
         private int CONNECTION_SLOPE_IDX = 0;
         private int CONNECTION_N = 5;
+        
         private double[] NODE_PROBABILITY;
         private double[] NODE_SUM;
         
@@ -145,10 +146,12 @@ public class Network {
         
         public void createConnectionsFile(int step) {
             File f = new File("connections.txt");
-            if (!f.exists()) try {
-                f.createNewFile();
-            } catch (IOException ex) {
-                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+            if (!f.exists()) {
+                try {
+                    f.createNewFile();
+                } catch (IOException ex) {
+                    Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
             ArrayList<Connection> cons = generateConnections();
             try {
@@ -181,7 +184,6 @@ public class Network {
                  */
                 
                 this.NODE_PROBABILITY[i] = sum / 2772.0;
-                //System.out.println(this.routers.get(i).getName() + " " + sum);
             }
         }
         
@@ -227,7 +229,7 @@ public class Network {
                 while (source == destination) {
                     destination = getNode();
                 }
-                double bw = 310;
+                double bw = 310; // 45, 155, 310
                 int index = getNextIndex();
                 Connection c = new Connection(index, ttl, bw, source, destination);
                 cons.add(c);
@@ -261,8 +263,9 @@ public class Network {
         
         public Fiber getLightfiber(int id) {
             for (Lightpath l : lightpaths) {
-                if (l.getLightfiber().getId() == id)
+                if (l.getLightfiber().getId() == id) {
                     return l.getLightfiber();
+                }
             }
             return null;
         }
@@ -301,7 +304,9 @@ public class Network {
                                     id = fib.getId();
                                 }
                                 else if (res == lam.getWeight()) {
-                                    if (id > fib.getId()) id = fib.getId();
+                                    if (id > fib.getId()) {
+                                        id = fib.getId();
+                                    }
                                 }
                             }
                             else if (MODE == 1) {
@@ -310,7 +315,9 @@ public class Network {
                                     id = fib.getId();
                                 }
                                 else if (res == lam.getEnergeticWeight()) {
-                                    if (id > fib.getId()) id = fib.getId();
+                                    if (id > fib.getId()) {
+                                        id = fib.getId();
+                                    }
                                 }
                             }
                         }
@@ -391,8 +398,12 @@ public class Network {
             List<Integer> attFibersId = source.getAttachedFibers();
             List<Fiber> attFibers = new ArrayList<>();
             for (Integer fib : attFibersId) {
-                if(fib <= ORIGINAL_FIBERS) attFibers.add(getFiber(fib));
-                else attFibers.add(getLightfiber(fib));
+                if(fib <= ORIGINAL_FIBERS) {
+                    attFibers.add(getFiber(fib));
+                }
+                else {
+                    attFibers.add(getLightfiber(fib));
+                }
             }
             return attFibers;
         }
@@ -405,10 +416,14 @@ public class Network {
                 for (Lambda l : lam) {
                     if (l.getResidualBandwidth() >= c.getBandwidth()) {
                         if (l.getId() < 0) {
-                            if (!lambdas.contains(-l.getId())) lambdas.add(-l.getId());
+                            if (!lambdas.contains(-l.getId())) {
+                                lambdas.add(-l.getId());
+                            }
                         }
                         else {
-                            if (!lambdas.contains(l.getId())) lambdas.add(l.getId());
+                            if (!lambdas.contains(l.getId())) {
+                                lambdas.add(l.getId());
+                            }
                         }
                     }
                 }
@@ -423,7 +438,9 @@ public class Network {
         }
         
         public void decreaseTimesToLive() {
-            if (this.enrutedConnections.isEmpty()) return;
+            if (this.enrutedConnections.isEmpty()) {
+                return;
+            }
             Connection con;
             Iterator<Connection> it = this.enrutedConnections.iterator(); 
             while (it.hasNext()){
@@ -549,8 +566,10 @@ public class Network {
                 Fiber f = light.getLightfiber();
                 if ((f.getNode1() == c.getSource() && f.getNode2() == c.getDestination()
                     || (f.getNode2() == c.getSource() && f.getNode1() == c.getDestination()))
-                    && f.getLambdas().get(0).getResidualBandwidth() >= c.getBandwidth())
+                    && f.getLambdas().get(0).getResidualBandwidth() >= c.getBandwidth()) {
                     return f;
+                }
+                    
             }
             return null;
         }
@@ -568,9 +587,13 @@ public class Network {
                 boolean found = false;
                 for (Iterator<Lightpath> it = this.lightpaths.iterator(); !found && it.hasNext();) {
                     Lightpath l = it.next();
-                    if (l.getLightfiber().getId() == i) found = true;
+                    if (l.getLightfiber().getId() == i) {
+                        found = true;
+                    }
                 }
-                if (!found) return i;
+                if (!found) {
+                    return i;
+                }
             }
             return Integer.MAX_VALUE;
         }
