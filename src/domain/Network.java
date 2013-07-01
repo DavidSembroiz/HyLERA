@@ -49,7 +49,8 @@ public class Network {
         private final double SMALL_ROUTER = 4.5;
         private final double MEDIUM_ROUTER = 3;
         private final double LARGE_ROUTER = 1.5;
-        private final int[] CONNECTION_SLOPE = {1, 2, 3, 4, 5, 6, 5, 4, 3, 2};
+        private final int[] CONNECTION_SLOPE = 
+            {1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1};
         private int CONNECTION_SLOPE_IDX = 0;
         private int CONNECTION_N = 5;
         private double[] NODE_PROBABILITY;
@@ -61,7 +62,9 @@ public class Network {
         private List<Lightpath> lightpaths;
 	private Set<Connection> enrutedConnections;
         private int blockedConnections;
+        private int partialBlockedConnections;
         private int totalConnections;
+        private int partialTotalConnections;
         private int numFibers;
         private int connectionIndex;
 	
@@ -73,7 +76,9 @@ public class Network {
 	private void generateNetwork() {
             enrutedConnections = new HashSet<>();
             blockedConnections = 0;
+            partialBlockedConnections = 0;
             totalConnections = 0;
+            partialTotalConnections = 0;
             connectionIndex = 0;
             numFibers = 53;
             generateFibers();
@@ -155,7 +160,8 @@ public class Network {
         
         public ArrayList<Connection> generateConnectionsFromFile(int step) {
             ArrayList<Connection> cons;
-            int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
+            //int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
+            int slope = CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX++/100)%CONNECTION_SLOPE.length];
             int lines = CONNECTION_N * slope;
             cons = this.readConnectionsFromFile(step, lines);
             return cons;
@@ -212,15 +218,16 @@ public class Network {
         
         public ArrayList<Connection> generateConnections() {
             ArrayList<Connection> cons = new ArrayList<>();
-            int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX)%CONNECTION_SLOPE.length];
+            //int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
+            int slope = CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX++/500)%CONNECTION_SLOPE.length];
             for (int i = 0; i < CONNECTION_N * slope; ++i) {
-                int ttl = 15;
+                int ttl = 250;
                 int source = getNode();
                 int destination = getNode();
                 while (source == destination) {
                     destination = getNode();
                 }
-                double bw = 5;
+                double bw = 310;
                 int index = getNextIndex();
                 Connection c = new Connection(index, ttl, bw, source, destination);
                 cons.add(c);
@@ -343,12 +350,40 @@ public class Network {
             return blockedConnections;
         }
         
+        public void setBlockedConnections(int s) {
+            this.blockedConnections = s;
+        }
+        
+        public int getPartialBlockedConnections() {
+            return partialBlockedConnections;
+        }
+        
+        public void setPartialBlockedConnections(int s) {
+            this.partialBlockedConnections = s;
+        }
+        
+        public void setTotalConnections(int s) {
+            this.totalConnections = s;
+        }
+        
         public int getTotalConnections() {
             return totalConnections;
         }
         
+        public void setPartialTotalConnections(int s) {
+            this.partialTotalConnections = s;
+        }
+        
+        public int getPartialTotalConnections() {
+            return partialTotalConnections;
+        }
+        
         public void increaseTotalConnections() {
             this.totalConnections++;
+        }
+        
+        public void increasePartialTotalConnections() {
+            this.partialTotalConnections++;
         }
         
         public List<Fiber> getAttachedFibersById(int id) {
@@ -383,7 +418,7 @@ public class Network {
              * to work better without reversing.
              */
             
-            //Collections.reverse(lambdas);
+            Collections.reverse(lambdas);
             return lambdas;
         }
         
@@ -421,7 +456,7 @@ public class Network {
                     }
                 }
             }
-            c.setConsumption(cons*c.getBandwidth());
+            c.setConsumption(cons*c.getBandwidth()/1000);
             this.TOTAL_CONSUMPTION += c.getConsumption();
             this.ACTUAL_CONSUMPTION += c.getConsumption();
         }
@@ -431,7 +466,10 @@ public class Network {
             LinkedList<Router> physicalPath = new LinkedList<>();
             Router source;
             boolean init = true;
-            if (c.getLambda() == PATH_NOT_FOUND) ++blockedConnections;
+            if (c.getLambda() == PATH_NOT_FOUND) {
+                ++partialBlockedConnections;
+                ++blockedConnections;
+            }
             else {
                 this.enrutedConnections.add(c);
                 Iterator<Router> it = path.iterator();
@@ -835,5 +873,50 @@ public class Network {
         
         private void printLambda(Lambda l) {
             System.out.println(l.getId() + "     Residual BW " + l.getResidualBandwidth() + "     Weight " + l.getWeight());
+        }
+        
+        int tam = 500;
+        int[] bloqueos = new int[tam];
+        int[] totales = new int[tam];
+        boolean full = false;
+        int index = 0;
+        
+        public double calculateBlock(int act, int tot) {
+            if (!full) {
+                bloqueos[index] = act;
+                totales[index++] = tot;
+                if (index == tam) full = true;
+            }
+            else {
+                for (int i = 1; i < bloqueos.length; ++i) {
+                    bloqueos[i - 1] = bloqueos[i];
+                    totales[i - 1] = totales[i];
+                }
+                bloqueos[bloqueos.length - 1] = act;
+                totales[totales.length - 1] = tot;
+            }
+            double num = 0;
+            double den = 0;
+            for (int i = 0; i < index; ++i) {
+                num += bloqueos[i];
+                den += totales[i];
+            }
+            return (num/den)*100;
+        }
+        
+        public void insertPartialData(int act, int tot) {
+            if (!full) {
+                bloqueos[index] = act;
+                totales[index++] = tot;
+                if (index == tam) full = true;
+            }
+            else {
+                for (int i = 1; i < bloqueos.length; ++i) {
+                    bloqueos[i - 1] = bloqueos[i];
+                    totales[i - 1] = totales[i];
+                }
+                bloqueos[bloqueos.length - 1] = act;
+                totales[totales.length - 1] = tot;
+            }
         }
 }

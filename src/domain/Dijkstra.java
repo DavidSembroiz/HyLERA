@@ -28,6 +28,7 @@ public class Dijkstra {
     public void execute(Router source, Connection con) {
         this.c = con;
         net.increaseTotalConnections();
+        net.increasePartialTotalConnections();
         LinkedList<Router> path = null;
         double minDistance = Double.MAX_VALUE;
         int finalLambda = net.LAMBDA_NOT_SETTLED;
