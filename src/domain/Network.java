@@ -52,7 +52,7 @@ public class Network {
         private final int[] CONNECTION_SLOPE = 
             {1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1};
         private int CONNECTION_SLOPE_IDX = 0;
-        private int CONNECTION_N = 5;
+        private int CONNECTION_N = 10;
         
         private double[] NODE_PROBABILITY;
         private double[] NODE_SUM;
