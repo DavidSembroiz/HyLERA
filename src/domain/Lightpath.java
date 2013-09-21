@@ -8,7 +8,8 @@ public class Lightpath {
     private LinkedList<Router> path;
     private Fiber lightfiber;
     
-    /** Representacion del nuevo camino creado entre dos Routers.
+    /* 
+     * Representacion del nuevo camino creado entre dos Routers.
      * 
      * @param path camino fisico que representa el lightpath.
      * @param f fibra que representa el nuevo camino creado.
@@ -18,6 +19,10 @@ public class Lightpath {
         this.path = path;
         this.lightfiber = f;
     }
+    
+    /************************************************************/
+    /*                   Getters y setters                      */
+    /************************************************************/
 
     public LinkedList<Router> getPath() {
         return path;
@@ -34,4 +39,6 @@ public class Lightpath {
     public void setLightfiber(Fiber lightfiber) {
         this.lightfiber = lightfiber;
     }
+    
+    /************************************************************/
 }

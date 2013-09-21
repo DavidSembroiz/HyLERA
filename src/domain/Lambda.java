@@ -8,7 +8,7 @@ public class Lambda {
         private double weight;
         private double longConsumption;
         
-        /**
+        /*
          * Devuelve una nueva lambda a la que solo se le asigna el identificador 
          * unico por el momento.
          * 
@@ -19,7 +19,7 @@ public class Lambda {
             this.id = id;
         }
         
-        /**
+        /*
          * Devuelve una nueva lambda.
          * 
          * @param id identificador unico de la lambda dentro de la fibra.
@@ -32,6 +32,10 @@ public class Lambda {
             this.residualBandwidth = residualBandwidth;
             this.weight = weight;
         }
+        
+        /************************************************************/
+        /*                   Getters y setters                      */
+        /************************************************************/
 
         public double getWeight() {
             return weight;
@@ -45,8 +49,22 @@ public class Lambda {
         public void setEnergeticWeight(double weight) {
             this.weight = weight;
         }
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public double getResidualBandwidth() {
+		return residualBandwidth;
+	}
+	public void setResidualBandwidth(double residualBandwidth) {
+		this.residualBandwidth = residualBandwidth;
+	}
         
-        /**
+        /************************************************************/
+        
+        /*
          * Asigna el consumo referente a la longitud de la fibra que contiene la 
          * lambda utilizando la formula floor(longitud/500)*3, que representa 
          * un regenerador de señal que consume 3 W/GB cada 500 Km.
@@ -62,7 +80,7 @@ public class Lambda {
             return this.longConsumption;
         }
         
-        /**
+        /*
          * Actualiza el peso de la lambda referente al consumo energetico. Si
          * el consumo de source y destination es 0, se asigna peso infinito.
          * 
@@ -81,9 +99,9 @@ public class Lambda {
             }
         }
         
-        /**
+        /*
          * Actualiza el peso de la lambda referente al bloqueo de conexiones 
-         * siguiendo la formula 1/(residualBw * Log10(totalBw))
+         * siguiendo la formula 1/(residualBw * Log10(totalBw)).
          * 
          * @param residual cantidad de ancho de banda restante en la lambda.
          * @param total cantidad de ancho de banda total de la lambda.
@@ -91,21 +109,9 @@ public class Lambda {
         
         public void actualizeWeight(double residual, double total) {
             this.weight = 1./(residual*Math.log10(total));
-        } 
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
-	public double getResidualBandwidth() {
-		return residualBandwidth;
-	}
-	public void setResidualBandwidth(double residualBandwidth) {
-		this.residualBandwidth = residualBandwidth;
-	}
+        }
         
-        /**
+        /*
          * Decrementa el ancho de banda de la lambda en bandwidth unidades.
          * 
          * @param bandwidth unidades a decrementar.
@@ -115,7 +121,7 @@ public class Lambda {
             this.residualBandwidth -= bandwidth;
         }
         
-        /**
+        /*
          * Incrementa el ancho de banda de la lambda en bandwidth unidades.
          * 
          * @param bandwidth unidades a incrementar.

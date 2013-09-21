@@ -15,7 +15,7 @@ public class Connection {
         private List<Integer> lightpathFibers;
         private double consumption;
         
-        /**
+        /*
          * Devuelve una nueva conexion con los valores necesarios para intentar 
          * enrutarla dentro de la red.
          * 
@@ -34,6 +34,10 @@ public class Connection {
 		this.destination = destination;
                 lightpathFibers = new ArrayList<>();
 	}
+        
+        /************************************************************/
+        /*                   Getters y setters                      */
+        /************************************************************/
 	
 	public int getId() {
 		return id;
@@ -89,4 +93,6 @@ public class Connection {
         public double getConsumption() {
             return this.consumption;
         }
+        
+        /************************************************************/
 }

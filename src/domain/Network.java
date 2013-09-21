@@ -23,36 +23,75 @@ import java.util.logging.Logger;
 
 public class Network {
     
-        /**
+        /*
+         * Parametros que controlan el numero de dias y de pasos diarios que va
+         * a ejecutar el algoritmo.
+         * El valor referente al numero de pasos diarios se explica de la siguiente
+         * manera:
+         *  - Como vemos mas abajo, el numero de escalones que tiene una ejecucion
+         *    es de 24. Utilizando el valor de 8640 nos aseguramos de que cada
+         *    vez que se creen conexiones, habran pasado exactamente 10 segundos,
+         *    que es un valor razonable.
+         */
+    
+        private int DAYS = 1;
+        private int TOTAL_STEPS = 8640*DAYS;
+   
+        /*
          * Modo de actuacion de la red:
-         * -- MODE 0: Blocking percentage aware
-         * -- MODE 1: Energy aware
+         * - MODE 0: Blocking percentage aware.
+         * - MODE 1: Energy aware.
          */
 
-        public int MODE = 0;
+        public int MODE = 1;
         
-        /**
-         * Consumo total de la red.
+        /*
+         * Consumo de la red.
          */
         
         private double TOTAL_CONSUMPTION = 0;
-        
-        /**
-         * Consumo actual de la red.
-         */
-        
         private double ACTUAL_CONSUMPTION = 0;
+        
+        /*
+         * Valores auxiliares para diferentes errores.
+         */
     
         public final int PATH_NOT_FOUND = -9999;
         public final int LAMBDA_NOT_SETTLED = -8888;
+        
+        /*
+         * Numero de fibras y lambdas totales de la red.
+         */
+        
         public final int ORIGINAL_FIBERS = 53;
-        private final double SMALL_ROUTER = 4.5;
-        private final double MEDIUM_ROUTER = 3;
-        private final double LARGE_ROUTER = 1.5;
+        private final double NUM_LAMBDAS = 2772.0;
+        
+        /*
+         * Lista que representa los diferentes consumos de los routers,
+         * estos valores seran asignados por rangos una vez ordenados los routers
+         * por tamaño. A menor consumo, el router sera mas grande. Este consumo
+         * equivale a W/GB.
+         */
+        
+        private final double[] ROUTER_CONSUMPTION = {1, 1.5, 2, 3.5, 5, 6, 8, 9, 10};
+        
+        /*
+         * Parametros que representan el numero de conexiones que se deben intentar
+         * enrutar en cada momento, cada valor de la lista equivale a una hora del dia
+         * y ese valor sera multiplicado por N para obtener el numero de conexiones
+         * por paso que deben intentar ser enrutadas-
+         */
+        
         private final int[] CONNECTION_SLOPE = 
             {1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1};
         private int CONNECTION_SLOPE_IDX = 0;
         private int CONNECTION_N = 10;
+        
+        /*
+         * Listas para guardar la probabilidad de aparacion de un nodo en una nueva
+         * conexion. Con esto nos aseguramos una mejor gestion de la red al hacer
+         * que los nodos con mayor numero de lambdas sean mas utilizados.
+         */
         
         private double[] NODE_PROBABILITY;
         private double[] NODE_SUM;
@@ -90,13 +129,39 @@ public class Network {
             calculateNodeSum();
 	}
         
+        /************************************************************/
+        /*                   Getters y setters                      */
+        /************************************************************/
+        
         public double getActualConsumption() {
             return this.ACTUAL_CONSUMPTION;
         }
-        
         public double getTotalConsumption() {
             return this.TOTAL_CONSUMPTION;
         }
+        public double getBlockingPercentaje() {
+            return ((double)blockedConnections/totalConnections)*100;
+        }
+        public List<Router> getRouters() {
+            return routers;
+        }
+        public Router getRouter(int id) {
+            return routers.get(id - 1);
+        }
+        public List<Fiber> getFibers() {
+            return fibers;
+        }
+        public Fiber getFiber(int id) {
+            return fibers.get(id - 1);
+        }
+        public int getDays() {
+            return DAYS;
+        }
+        public int getTotalSteps() {
+            return TOTAL_STEPS;
+        }
+       
+        /************************************************************/
         
         private ArrayList<Connection> readConnectionsFromFile(int step, int lines) {
             ArrayList<Connection> cons = new ArrayList();
@@ -130,6 +195,30 @@ public class Network {
             return cons;
         }
         
+        private ArrayList<Connection> readRawConnectionsFromFile(int n) {
+            ArrayList<Connection> cons = new ArrayList();
+            try {
+                FileInputStream fstream = new FileInputStream("raw.txt");
+                try (DataInputStream in = new DataInputStream(fstream)) {
+                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
+                    String strLine;
+                    while ((strLine = br.readLine()) != null) {
+                        String[] c = strLine.split(" ");
+                        Connection con = new Connection(Integer.parseInt(c[0]),
+                                                        Integer.parseInt(c[1]),
+                                                        Double.parseDouble(c[2]),
+                                                        Integer.parseInt(c[3]),
+                                                        Integer.parseInt(c[4]));
+                        cons.add(con);
+                   }
+                }
+            } catch (IOException | NumberFormatException e) {
+                    System.err.println("Error: " + e.getMessage());
+            }
+            return cons;
+        }
+        
+        
         private void writeConnectionsToFile(int step, ArrayList<Connection> c) throws IOException {
             try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("connections.txt", true)))) {
                 writer.println("STEP " + step);
@@ -140,6 +229,59 @@ public class Network {
                 }
                 writer.close();
             } catch (FileNotFoundException | UnsupportedEncodingException ex) {
+                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        public ArrayList<Connection> generateRawConnectionsFromFile(int n) {
+            ArrayList<Connection> cons;
+            cons = this.readRawConnectionsFromFile(n);
+            return cons;
+        }
+        
+        private ArrayList<Connection> generateRawConnections(int n) {
+            ArrayList<Connection> cons = new ArrayList<>();
+            for (int i = 0; i < n; ++i) {
+                int ttl = 1; // 250 for 12000 steps (half an hour)
+                int source = getNode();
+                int destination = getNode();
+                while (source == destination) {
+                    destination = getNode();
+                }
+                double bw = 310; // 45, 155, 310
+                int idx = getNextIndex();
+                Connection c = new Connection(idx, ttl, bw, source, destination);
+                cons.add(c);
+            }
+            return cons;
+        }
+        
+        private void writeRawConnectionsToFile(ArrayList<Connection> cons) throws IOException {
+            try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("raw.txt", true)))) {
+                for (Connection con : cons) {
+                    writer.println(Integer.toString(con.getId()) + " " + Integer.toString(con.getTimeToLive()) + " " + 
+                                   Double.toString(con.getBandwidth()) + " " + Integer.toString(con.getSource())+ " " +
+                                   Integer.toString(con.getDestination()));
+                }
+                writer.close();
+            } catch (FileNotFoundException | UnsupportedEncodingException ex) {
+                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        public void createRawConnectionsFile(int n) {
+            File f = new File("raw.txt");
+            if (!f.exists()) {
+                try {
+                    f.createNewFile();
+                } catch (IOException ex) {
+                    Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            ArrayList<Connection> cons = generateRawConnections(n);
+            try {
+                writeRawConnectionsToFile(cons);
+            } catch (IOException ex) {
                 Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -164,13 +306,13 @@ public class Network {
         public ArrayList<Connection> generateConnectionsFromFile(int step) {
             ArrayList<Connection> cons;
             //int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
-            int slope = CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX++/100)%CONNECTION_SLOPE.length];
+            int slope = CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX++/(TOTAL_STEPS/(24*DAYS)))%CONNECTION_SLOPE.length];
             int lines = CONNECTION_N * slope;
             cons = this.readConnectionsFromFile(step, lines);
             return cons;
         }
         
-        public void calculateNumLambdas() {
+        private void calculateNumLambdas() {
             int sum;
             this.NODE_PROBABILITY = new double[34];
             for (int i = 0; i < this.routers.size(); ++i) {
@@ -179,11 +321,7 @@ public class Network {
                 for (int j = 0; j < fib.size(); ++j) {
                     sum += this.getFiber(fib.get(j)).getNumLambdas();
                 }
-                /**
-                 * 2772: number of total lambdas in the whole network
-                 */
-                
-                this.NODE_PROBABILITY[i] = sum / 2772.0;
+                this.NODE_PROBABILITY[i] = sum / NUM_LAMBDAS;
             }
         }
         
@@ -221,17 +359,17 @@ public class Network {
         public ArrayList<Connection> generateConnections() {
             ArrayList<Connection> cons = new ArrayList<>();
             //int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
-            int slope = CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX++/500)%CONNECTION_SLOPE.length];
+            int slope = CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX/(TOTAL_STEPS/(24*DAYS)))%CONNECTION_SLOPE.length]; // steps/24h for division
             for (int i = 0; i < CONNECTION_N * slope; ++i) {
-                int ttl = 250;
+                int ttl = (TOTAL_STEPS/(24*DAYS))/2; // 250 for 12000 steps (half an hour)
                 int source = getNode();
                 int destination = getNode();
                 while (source == destination) {
                     destination = getNode();
                 }
                 double bw = 310; // 45, 155, 310
-                int index = getNextIndex();
-                Connection c = new Connection(index, ttl, bw, source, destination);
+                int idx = getNextIndex();
+                Connection c = new Connection(idx, ttl, bw, source, destination);
                 cons.add(c);
             }
             return cons;
@@ -240,26 +378,10 @@ public class Network {
         private int getNextIndex() {
             return ++connectionIndex;
         }
-        
-        public double getBlockingPercentaje() {
-            return ((double)blockedConnections/totalConnections)*100;
+        private int getNextNumFiber() {
+            return ++this.numFibers;
         }
         
-        public List<Router> getRouters() {
-            return routers;
-        }
-        
-        public Router getRouter(int id) {
-            return routers.get(id - 1);
-        }
-        
-        public List<Fiber> getFibers() {
-            return fibers;
-        }
-        
-        public Fiber getFiber(int id) {
-            return fibers.get(id - 1);
-        }
         
         public Fiber getLightfiber(int id) {
             for (Lightpath l : lightpaths) {
@@ -474,6 +596,9 @@ public class Network {
                 }
             }
             c.setConsumption(cons*c.getBandwidth()/1000);
+            if (c.getConsumption() == 0) {
+                System.out.println("Wrong consumption");
+            }
             this.TOTAL_CONSUMPTION += c.getConsumption();
             this.ACTUAL_CONSUMPTION += c.getConsumption();
         }
@@ -598,12 +723,8 @@ public class Network {
             return Integer.MAX_VALUE;
         }
         
-        private int getNextNumFiber() {
-            return ++this.numFibers;
-        }
         
-        
-        public void createLightpath(Connection c, LinkedList<Router> p, double bw, int dist) {
+        private void createLightpath(Connection c, LinkedList<Router> p, double bw, int dist) {
             LinkedList<Router> path = new LinkedList<>();
             for (Router r : p) {
                 path.add(r);
@@ -629,7 +750,7 @@ public class Network {
             lightpaths.add(light);
         }
         
-        public void increaseLightpath(Connection c) {
+        private void increaseLightpath(Connection c) {
             boolean delete;
             Iterator<Integer> ids = c.getLightpathFibers().iterator();
             while(ids.hasNext()) {
@@ -652,7 +773,7 @@ public class Network {
             }
         }
         
-        public void deleteLightpath(Connection c, int lightfiber) {
+        private void deleteLightpath(Connection c, int lightfiber) {
             Lightpath lf = null;
             for (Lightpath i : lightpaths) {
                 if (i.getLightfiber().getId() == lightfiber) {
@@ -678,43 +799,43 @@ public class Network {
         private void generateRouters() {
                 routers = new ArrayList<>();
                 lightpaths = new ArrayList<>();
-		routers.add(new Router(1, "PT", SMALL_ROUTER, generateAttachedFibers(1)));
-		routers.add(new Router(2, "ES", MEDIUM_ROUTER, generateAttachedFibers(2)));
-		routers.add(new Router(3, "IS", SMALL_ROUTER, generateAttachedFibers(3)));
-		routers.add(new Router(4, "IE", SMALL_ROUTER, generateAttachedFibers(4)));
-		routers.add(new Router(5, "UK", LARGE_ROUTER, generateAttachedFibers(5)));
-		routers.add(new Router(6, "FR", LARGE_ROUTER, generateAttachedFibers(6)));
-		routers.add(new Router(7, "NL", LARGE_ROUTER, generateAttachedFibers(7)));
-		routers.add(new Router(8, "BE", MEDIUM_ROUTER, generateAttachedFibers(8)));
-		routers.add(new Router(9, "LU", SMALL_ROUTER, generateAttachedFibers(9)));
-		routers.add(new Router(10, "CH", LARGE_ROUTER, generateAttachedFibers(10)));
+		routers.add(new Router(1, "PT", ROUTER_CONSUMPTION[7], generateAttachedFibers(1)));
+		routers.add(new Router(2, "ES", ROUTER_CONSUMPTION[3], generateAttachedFibers(2)));
+		routers.add(new Router(3, "IS", ROUTER_CONSUMPTION[8], generateAttachedFibers(3)));
+		routers.add(new Router(4, "IE", ROUTER_CONSUMPTION[8], generateAttachedFibers(4)));
+		routers.add(new Router(5, "UK", ROUTER_CONSUMPTION[0], generateAttachedFibers(5)));
+		routers.add(new Router(6, "FR", ROUTER_CONSUMPTION[2], generateAttachedFibers(6)));
+		routers.add(new Router(7, "NL", ROUTER_CONSUMPTION[1], generateAttachedFibers(7)));
+		routers.add(new Router(8, "BE", ROUTER_CONSUMPTION[4], generateAttachedFibers(8)));
+		routers.add(new Router(9, "LU", ROUTER_CONSUMPTION[7], generateAttachedFibers(9)));
+		routers.add(new Router(10, "CH", ROUTER_CONSUMPTION[0], generateAttachedFibers(10)));
 		
-		routers.add(new Router(11, "NO", MEDIUM_ROUTER, generateAttachedFibers(11)));
-		routers.add(new Router(12, "DE", LARGE_ROUTER, generateAttachedFibers(12)));
-		routers.add(new Router(13, "IT", LARGE_ROUTER, generateAttachedFibers(13)));
-		routers.add(new Router(14, "DK", LARGE_ROUTER, generateAttachedFibers(14)));
-		routers.add(new Router(15, "MT", SMALL_ROUTER, generateAttachedFibers(15)));
-		routers.add(new Router(16, "SE", LARGE_ROUTER, generateAttachedFibers(16)));
-		routers.add(new Router(17, "CZ", LARGE_ROUTER, generateAttachedFibers(17)));
-		routers.add(new Router(18, "SI", MEDIUM_ROUTER, generateAttachedFibers(18)));
-		routers.add(new Router(19, "PL", MEDIUM_ROUTER, generateAttachedFibers(19)));
-		routers.add(new Router(20, "AT", LARGE_ROUTER, generateAttachedFibers(20)));
+		routers.add(new Router(11, "NO", ROUTER_CONSUMPTION[3], generateAttachedFibers(11)));
+		routers.add(new Router(12, "DE", ROUTER_CONSUMPTION[0], generateAttachedFibers(12)));
+		routers.add(new Router(13, "IT", ROUTER_CONSUMPTION[1], generateAttachedFibers(13)));
+		routers.add(new Router(14, "DK", ROUTER_CONSUMPTION[0], generateAttachedFibers(14)));
+		routers.add(new Router(15, "MT", ROUTER_CONSUMPTION[8], generateAttachedFibers(15)));
+		routers.add(new Router(16, "SE", ROUTER_CONSUMPTION[0], generateAttachedFibers(16)));
+		routers.add(new Router(17, "CZ", ROUTER_CONSUMPTION[1], generateAttachedFibers(17)));
+		routers.add(new Router(18, "SI", ROUTER_CONSUMPTION[3], generateAttachedFibers(18)));
+		routers.add(new Router(19, "PL", ROUTER_CONSUMPTION[4], generateAttachedFibers(19)));
+		routers.add(new Router(20, "AT", ROUTER_CONSUMPTION[0], generateAttachedFibers(20)));
 		
-		routers.add(new Router(21, "HR", MEDIUM_ROUTER, generateAttachedFibers(21)));
-		routers.add(new Router(22, "SK", LARGE_ROUTER, generateAttachedFibers(22)));
-		routers.add(new Router(23, "HU", MEDIUM_ROUTER, generateAttachedFibers(23)));
-		routers.add(new Router(24, "FI", MEDIUM_ROUTER, generateAttachedFibers(24)));
-		routers.add(new Router(25, "EE", SMALL_ROUTER, generateAttachedFibers(25)));
-		routers.add(new Router(26, "LV", SMALL_ROUTER, generateAttachedFibers(26)));
-		routers.add(new Router(27, "LT", SMALL_ROUTER, generateAttachedFibers(27)));
-		routers.add(new Router(28, "RO", MEDIUM_ROUTER, generateAttachedFibers(28)));
-		routers.add(new Router(29, "BG", MEDIUM_ROUTER, generateAttachedFibers(29)));
-		routers.add(new Router(30, "GR", MEDIUM_ROUTER, generateAttachedFibers(30)));
+		routers.add(new Router(21, "HR", ROUTER_CONSUMPTION[3], generateAttachedFibers(21)));
+		routers.add(new Router(22, "SK", ROUTER_CONSUMPTION[2], generateAttachedFibers(22)));
+		routers.add(new Router(23, "HU", ROUTER_CONSUMPTION[3], generateAttachedFibers(23)));
+		routers.add(new Router(24, "FI", ROUTER_CONSUMPTION[4], generateAttachedFibers(24)));
+		routers.add(new Router(25, "EE", ROUTER_CONSUMPTION[8], generateAttachedFibers(25)));
+		routers.add(new Router(26, "LV", ROUTER_CONSUMPTION[8], generateAttachedFibers(26)));
+		routers.add(new Router(27, "LT", ROUTER_CONSUMPTION[8], generateAttachedFibers(27)));
+		routers.add(new Router(28, "RO", ROUTER_CONSUMPTION[4], generateAttachedFibers(28)));
+		routers.add(new Router(29, "BG", ROUTER_CONSUMPTION[4], generateAttachedFibers(29)));
+		routers.add(new Router(30, "GR", ROUTER_CONSUMPTION[3], generateAttachedFibers(30)));
 		
-		routers.add(new Router(31, "TR", SMALL_ROUTER, generateAttachedFibers(31)));
-		routers.add(new Router(32, "RU", SMALL_ROUTER, generateAttachedFibers(32)));
-		routers.add(new Router(33, "CY", SMALL_ROUTER, generateAttachedFibers(33)));
-		routers.add(new Router(34, "IL", SMALL_ROUTER, generateAttachedFibers(34)));
+		routers.add(new Router(31, "TR", ROUTER_CONSUMPTION[7], generateAttachedFibers(31)));
+		routers.add(new Router(32, "RU", ROUTER_CONSUMPTION[7], generateAttachedFibers(32)));
+		routers.add(new Router(33, "CY", ROUTER_CONSUMPTION[7], generateAttachedFibers(33)));
+		routers.add(new Router(34, "IL", ROUTER_CONSUMPTION[8], generateAttachedFibers(34)));
 	}
 
 	private void generateFibers() {
@@ -882,23 +1003,24 @@ public class Network {
             }
         }
         
-        private void printRouter(Router r) {
+        public void printRouter(Router r) {
             System.out.println("");
             System.out.println("Router " + r.getId() + " " + r.getName());
             System.out.println("--------------------------------");
         }
         
-        private void printFiber(Fiber fib) {
+        public void printFiber(Fiber fib) {
             System.out.println("");
             System.out.println("Fiber " + fib.getId() + "  Total BW " + fib.getTotalBandwidth());
             System.out.println("------------------------- Lambdas");
         }
         
-        private void printLambda(Lambda l) {
+        public void printLambda(Lambda l) {
             System.out.println(l.getId() + "     Residual BW " + l.getResidualBandwidth() + "     Weight " + l.getWeight());
         }
         
-        int tam = 500;
+        int tam = (TOTAL_STEPS/(24*DAYS)); // steps/24h (500 for 12000)
+        
         int[] bloqueos = new int[tam];
         int[] totales = new int[tam];
         boolean full = false;
@@ -942,4 +1064,6 @@ public class Network {
                 totales[totales.length - 1] = tot;
             }
         }
+        
+        
 }

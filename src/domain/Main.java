@@ -5,37 +5,53 @@ import java.util.ArrayList;
 
 public class Main {
     
-    private static int TOTAL_STEPS = 12000;
-    
-    
-    
+   
     public static void main(String[] args) throws IOException {
        
         int step = 0;
+        boolean hybrid = false;
         
         Network net = new Network();
         Dijkstra dij = new Dijkstra(net);
+        
+        
+        /*
+         * Block to generate only N connections, all at the same time and check 
+         * the behavior of the network in this scenario
+         */
+        
+        int n = 3000;
+        net.createRawConnectionsFile(n);
+        ArrayList<Connection> con = net.generateRawConnectionsFromFile(n);
+        for (Connection co : con) {
+            dij.execute(net.getRouter(co.getSource()), co);
+        }
+        
+        /*
+         * End of block
+         */
+        
+        
+        int TOTAL_STEPS = net.getTotalSteps();
+        int DAYS = net.getDays();
+        double partial = 0;
         //net.deleteFiles();
         //net.printNodeDistribution();
         while (step < TOTAL_STEPS) {
-            //System.out.println("------------------------------------------STEP " + step + "-----------------------------------------");
             net.decreaseTimesToLive();
             //net.createConnectionsFile(step);
-            //ArrayList<Connection> connections = net.generateConnectionsFromFile(step);
-            ArrayList<Connection> connections = net.generateConnections();
-            /*if (step == 959) {
-                net.setBlockedConnections(0);
-                net.setTotalConnections(0);
-            }*/
-            if (step > 0 && step%50 == 0) {
-                System.out.println(net.calculateBlock(net.getPartialBlockedConnections(), net.getPartialTotalConnections()));
+            ArrayList<Connection> connections = net.generateConnectionsFromFile(step);
+            //ArrayList<Connection> connections = net.generateConnections();
+            if (step > 0 && step%(TOTAL_STEPS/(240*DAYS)) == 0) { // 10 times every hour
+                partial = net.calculateBlock(net.getPartialBlockedConnections(), net.getPartialTotalConnections());
+                System.out.println(partial);
             }
             else {
                 net.insertPartialData(net.getPartialBlockedConnections(), net.getPartialTotalConnections());
             }
             net.setPartialBlockedConnections(0);
             net.setPartialTotalConnections(0);
-            if (step > 0 && step%500 == 0) {
+            if (step > 0 && step%(TOTAL_STEPS/(24*DAYS)) == 0) { // 1 time every hour
                     System.out.println("Blocked connections: " + net.getBlockedConnections());
                     System.out.println("Total connections: " + net.getTotalConnections());
                     System.out.println("Percentaje of blocking: " + net.getBlockingPercentaje());
@@ -48,6 +64,17 @@ public class Main {
                 
                 //net.printConnection(c);
                 //net.printConnectionToFile(c);
+            }
+            
+            if (hybrid && step > 0 && step%(TOTAL_STEPS/(240*DAYS)) == 0) {
+                if (net.MODE == 1 && partial > 2) {
+                    net.MODE = 0;
+                    System.out.println("Mode changed from 1 to 0 (Activated Blocking Awareness)");
+                }
+                else if (net.MODE == 0 && partial < 1.5) {
+                    net.MODE = 1;
+                    System.out.println("Mode changed from 0 to 1 (Activated Energy Awareness)");
+                }
             }
             ++step;
         }

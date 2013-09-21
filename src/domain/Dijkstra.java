@@ -21,9 +21,27 @@ public class Dijkstra {
     private Connection c;
     private boolean found;
     
+    /*
+     * Crea una nueva instancia de la clase Dijkstra que es la encargada
+     * de toda la ejecucion del algoritmo para enrutar conexiones.
+     * 
+     * @param network red en la que se enrutaran las conexiones que vayan
+     * entrando.
+     */
+    
+    
     public Dijkstra(Network network) {
         net = network;
     }
+    
+    /*
+     * Nucleo de todo el algoritmo, es la funcion encargada de iniciar la
+     * busqueda de un camino para cada conexion.
+     * 
+     * @param source router de inicio de la conexion que se esta intentando
+     * enrutar.
+     * @param con conexion para la que se esta buscando un camino.
+     */
     
     public void execute(Router source, Connection con) {
         this.c = con;
@@ -73,6 +91,14 @@ public class Dijkstra {
         }
     }
     
+    /*
+     * Funcion auxiliar que actualiza las distancias de todos los nodos vecinos
+     * al nodo de entrada.
+     * 
+     * @param node nodo actual al que se le estan calculando las distancias hasta
+     * todos sus vecinos.
+     */
+    
     private void findMinimalDistance(Router node) {
         List<Router> adjacentRouters = getNeighbors(node);
         double dist, shortestDistance;
@@ -90,6 +116,14 @@ public class Dijkstra {
         }
     }
     
+    /*
+     * Funcion auxiliar que devuelve el nodo con menor distancia de la lista
+     * de posibles candidatos.
+     * 
+     * @param r conjunto de routers candidatos a formar parte del camino que se
+     * esta buscando, el que tenga la distancia mas corta sera el elegido.
+     */
+    
     private Router getMinimum(Set<Router> r) {
         Router min = null;
         for (Router rou : r) {
@@ -104,6 +138,14 @@ public class Dijkstra {
         }
         return min;
     }
+    
+    /*
+     * Funcion auxiliar que devuelve la menor distancia obtenida hasta el momento
+     * para el nodo de entrada.
+     * 
+     * @param rou nodo del que se obtiene la minima distancia para llegar a el
+     * hasta el momento.
+     */
 
     private double getShortestDistance(Router rou) {
         Double d = distance.get(rou);
@@ -112,6 +154,14 @@ public class Dijkstra {
         }
         return d;
     }
+    
+    /*
+     * Funcion auxiliar que devuelve el extremo de la fibra no usado hasta el
+     * momento.
+     * 
+     * @param f fibra utilzada para formar el camino de la conexion.
+     * @param node nodo de inicio de la fibra utilizada.
+     */
     
     private Router insertNeighbor(Fiber f, int node) {
         if (f.getNode1() == node) {
@@ -122,6 +172,13 @@ public class Dijkstra {
         }
         return null;
     }
+    
+    /*
+     * Funcion auxiliar que nos muestra si un nodo ya ha sido visitado o no.
+     * 
+     * @param f fibra que esta siendo analizada.
+     * @param node uno de los dos extremos de la fibra analizada.
+     */
     
     private boolean isSettled(Fiber f, int node) {
         if (f.getNode1() == node) {
@@ -136,6 +193,18 @@ public class Dijkstra {
         }
         return false;
     }
+    
+    /*
+     * Funcion auxiliar que devuelve todos los vecinos del nodo de entrada
+     * teniendo en cuenta una serie de restricciones:
+     *  - No ha sido visitado todavia.
+     *  - Podemos llegar a el pasando por una fibra con la lambda que estamos
+     *    analizando en ese momento.
+     *  - Tiene ancho de banda suficiente en esa lambda como para que la
+     *    conexion actual pueda ser enrutada.
+     * 
+     * @param node nodo del que se estan buscando todos sus vecinos accesibles.
+     */
     
     private List<Router> getNeighbors(Router node) {
         List<Lambda> lambdas;
@@ -154,19 +223,21 @@ public class Dijkstra {
                     insert = true;
                 }
             }
-            /*if (insert) {
-                if (fib.getNode1() == node.getId()) {
-                    neighbors.add(net.getRouter(fib.getNode2()));
-                }
-                else if (fib.getNode2() == node.getId()) {
-                    neighbors.add(net.getRouter(fib.getNode1()));
-                }
-            }*/
         }
         return neighbors;
     }
     
-    
+    /*
+     * Funcion auxiliar que devuelve la distancia entre los dos nodos de entrada
+     * siguiendo el siguiente patron:
+     *  - Se obtienen todas las posibles fibras que conectan los dos nodos.
+     *  - Se descartan todas aquellas que no cumplen la restriccion de lambda
+     *    y ancho de banda requeridos.
+     *  - Entre las posibles candidatas restantes, se busca la que tiene
+     *    menor distancia dependiendo del modo que se este utilizando.
+     *  - Se devuelve la distancia final utilizada dependiendo del modo que se
+     *    este utilizando.
+     */
     
     private double getDistance(Router node, Router neighbor) {
         List<Integer> attFibersId = node.getAttachedFibers();
@@ -182,12 +253,6 @@ public class Dijkstra {
         }
         plausibleFibers = net.getPlausibleFibers(attFibers, node.getId(), neighbor.getId());
         int id = net.getShortestFiberByWeight(plausibleFibers, c);
-        
-        /**
-         * Comprobar variables para cambiar de modo si se pretende usar
-         * el doble modo
-         */
-
         
         if (net.MODE == 0) {
             if (id <= net.ORIGINAL_FIBERS) {
@@ -207,6 +272,12 @@ public class Dijkstra {
         return Double.MAX_VALUE;
     }
     
+    /*
+     * Funcion auxiliar que devuelve el camino final obtenido para enrutar
+     * la conexion.
+     * 
+     * @param node ultimo nodo que forma parte del camino de la conexion.
+     */
 
     private LinkedList<Router> getPath(Router node) {
         LinkedList<Router> path = new LinkedList<>();

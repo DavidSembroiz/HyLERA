@@ -11,8 +11,9 @@ public class Fiber {
 	private List<Lambda> lambdas;
 	private double totalBandwidth;
         
-        /** Devuelve una nueva fibra que puede representar tanto a una fibra original
-         *  como a una fibra de un lightpath.
+        /* 
+         * Devuelve una nueva fibra que puede representar tanto a una fibra original
+         * como a una fibra de un lightpath.
          * 
          * @param id numero de identificacion unico de cada fibra.
          * @param node1 identificador del Router source de la fibra.
@@ -30,6 +31,11 @@ public class Fiber {
 		this.length = length;
 		this.totalBandwidth = Bandwidth;
 	}
+        
+        /************************************************************/
+        /*                   Getters y setters                      */
+        /************************************************************/
+        
 	public int getId() {
 		return id;
 	}
@@ -73,8 +79,11 @@ public class Fiber {
 		this.numLambdas = numLambdas;
 	}
         
-        /** Devuelve la lambda con identificador id para las fibras originales
-         *  unicamente.
+        /************************************************************/
+        
+        /* 
+         * Devuelve la lambda con identificador id para las fibras originales
+         * unicamente.
          * 
          * @param id identificador de la lambda dentro de la fibra.
          * @return lambda con el identificador id.
@@ -84,18 +93,19 @@ public class Fiber {
             return this.lambdas.get(id - 1);
         }
         
-        /** Devuelve la unica lambda que contiene una fibra que representa
-         *  un lightpath.
+        /*
+         * Devuelve la unica lambda que contiene una fibra que representa
+         * un lightpath.
          */
         
         public Lambda getLightLambda() {
             return this.lambdas.get(0);
         }
         
-        /** Decrementa el ancho de banda en bandwidth unidades de la lambda
-         *  con identificador lambda en las fibras originales unicamente.
+        /* 
+         * Decrementa el ancho de banda en bandwidth unidades de la lambda
+         * con identificador lambda en las fibras originales unicamente.
          *  
-         * 
          * @param bandwidth unidades a decrementar.
          * @param lambda identificador de la lambda.
          */
@@ -104,8 +114,9 @@ public class Fiber {
             lambdas.get(lambda - 1).decreaseBandwidth(bandwidth);
         }
         
-        /** Decrementa el ancho de banda en bandwidth unidades de la unica
-         *  lambda que contiene una fibra que representa un lightpath.
+        /* 
+         * Decrementa el ancho de banda en bandwidth unidades de la unica
+         * lambda que contiene una fibra que representa un lightpath.
          * 
          * @param bandwidth unidades a decrementar.
          */
@@ -114,8 +125,9 @@ public class Fiber {
             lambdas.get(0).decreaseBandwidth(bandwidth);
         }
         
-        /** Incrementa el ancho de banda en bandwidth unidades de la lambda
-         *  con identificador lambda en las fibras originales unicamente.
+        /* 
+         * Incrementa el ancho de banda en bandwidth unidades de la lambda
+         * con identificador lambda en las fibras originales unicamente.
          * 
          * @param bandwidth unidades a incrementar.
          * @param lambda identificador de la lambda.
@@ -125,8 +137,9 @@ public class Fiber {
             lambdas.get(lambda - 1).increaseBandwidth(bandwidth);
         }
         
-        /** Incrementa el ancho de banda en bw unidades de la unica lambda
-         *  que contiene una fibra que representa un lightpath.
+        /* 
+         * Incrementa el ancho de banda en bw unidades de la unica lambda
+         * que contiene una fibra que representa un lightpath.
          * 
          * @param bw unidades a incrementar.
          */
@@ -135,7 +148,8 @@ public class Fiber {
             lambdas.get(0).increaseBandwidth(bw);
         }
         
-        /** Actualiza el peso referente al bloqueo de conexiones.
+        /* 
+         * Actualiza el peso referente al bloqueo de conexiones.
          * 
          * @param lambda identificador de la lambda a actualizar.
          * @param residual cantidad de ancho de banda restante en la lambda.
@@ -146,8 +160,9 @@ public class Fiber {
             this.lambdas.get(lambda - 1).actualizeWeight(residual, total);
         }
         
-        /** Actualiza el peso referente al bloqueo de conexiones en una fibra
-         *  que representa un lightpath.
+        /* 
+         * Actualiza el peso referente al bloqueo de conexiones en una fibra
+         * que representa un lightpath.
          * 
          * @param residual cantidad de ancho de banda restante de la lambda.
          * @param total cantidad de ancho de banda total de la lambda.
@@ -157,7 +172,8 @@ public class Fiber {
             this.lambdas.get(0).actualizeWeight(residual, total);
         }
         
-        /** Actualiza el peso referente a la energia consumida.
+        /* 
+         * Actualiza el peso referente a la energia consumida.
          * 
          * @param lambda identificador de la lambda a actualizar.
          * @param rs consumo del Router source de la fibra que contiene la lambda.
@@ -168,8 +184,10 @@ public class Fiber {
         public void actualizeLambdaEnergeticWeight(int lambda, double rs, double rd, int lon) {
             this.lambdas.get(lambda - 1).actualizeEnergeticWeight(rs, rd, lon);
         }
-        /** Asigna el valor infinito al peso referente a la energia consumida
-         *  a la lambda con identificador lambda.
+        
+        /* 
+         * Asigna el valor infinito al peso referente a la energia consumida
+         * de la lambda con identificador lambda.
          * 
          * @param lambda identificador de la lambda.
          */

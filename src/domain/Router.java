@@ -10,16 +10,15 @@ public class Router {
         private double consumption;
         private List<Integer> attachedFibers;
         
-        /**
+        /*
          * Crea un nuevo Router que representara un nodo de la red.
          * 
          * @param id identificador unico del router.
          * @param name nombre del pais donde esta situado el router.
-         * @param consumption consumo fijo del router por cada GB
+         * @param consumption consumo fijo del router por cada GB.
          * @param attachedFibers lista de identificadores de las fibras conectadas
          * al router.
          */
-	
 	
 	public Router(int id, String name, double consumption, List<Integer> attachedFibers) {
 		this.id = id;
@@ -27,6 +26,10 @@ public class Router {
                 this.consumption = consumption;
                 this.attachedFibers = attachedFibers;      
         }
+        
+        /************************************************************/
+        /*                   Getters y setters                      */
+        /************************************************************/
 
 	public int getId() {
 		return id;
@@ -52,7 +55,6 @@ public class Router {
         public List<Integer> getAttachedFibers() {
             return attachedFibers;
         }
-        
         public void addAttachedFiber(int id) {
             this.attachedFibers.add(id);
         }
@@ -62,4 +64,6 @@ public class Router {
         public void setConsumption(double c) {
                 this.consumption = c;
         }
+        
+        /************************************************************/
 }
