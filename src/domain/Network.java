@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 
 public class Network {
     
-        /*
+        /**
          * Parametros que controlan el numero de dias y de pasos diarios que va
          * a ejecutar el algoritmo.
          * El valor referente al numero de pasos diarios se explica de la siguiente
@@ -34,10 +34,10 @@ public class Network {
          *    que es un valor razonable.
          */
     
-        private int DAYS = 1;
+        private int DAYS = 2;
         private int TOTAL_STEPS = 8640*DAYS;
    
-        /*
+        /**
          * Modo de actuacion de la red:
          * - MODE 0: Blocking percentage aware.
          * - MODE 1: Energy aware.
@@ -45,28 +45,28 @@ public class Network {
 
         public int MODE = 1;
         
-        /*
+        /**
          * Consumo de la red.
          */
         
         private double TOTAL_CONSUMPTION = 0;
         private double ACTUAL_CONSUMPTION = 0;
         
-        /*
+        /**
          * Valores auxiliares para diferentes errores.
          */
     
         public final int PATH_NOT_FOUND = -9999;
         public final int LAMBDA_NOT_SETTLED = -8888;
         
-        /*
+        /**
          * Numero de fibras y lambdas totales de la red.
          */
         
         public final int ORIGINAL_FIBERS = 53;
         private final double NUM_LAMBDAS = 2772.0;
         
-        /*
+        /**
          * Lista que representa los diferentes consumos de los routers,
          * estos valores seran asignados por rangos una vez ordenados los routers
          * por tamaño. A menor consumo, el router sera mas grande. Este consumo
@@ -75,19 +75,19 @@ public class Network {
         
         private final double[] ROUTER_CONSUMPTION = {1, 1.5, 2, 3.5, 5, 6, 8, 9, 10};
         
-        /*
+        /**
          * Parametros que representan el numero de conexiones que se deben intentar
          * enrutar en cada momento, cada valor de la lista equivale a una hora del dia
          * y ese valor sera multiplicado por N para obtener el numero de conexiones
          * por paso que deben intentar ser enrutadas-
          */
         
-        private final int[] CONNECTION_SLOPE = 
-            {1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1};
+        private final double[] CONNECTION_SLOPE = 
+            {5, 7, 9, 12, 16, 18, 22, 24, 26, 30, 32, 32, 32, 32, 30, 26, 24, 22, 18, 16, 12, 9, 7, 5};
         private int CONNECTION_SLOPE_IDX = 0;
-        private int CONNECTION_N = 10;
+        private int CONNECTION_N = 1;
         
-        /*
+        /**
          * Listas para guardar la probabilidad de aparacion de un nodo en una nueva
          * conexion. Con esto nos aseguramos una mejor gestion de la red al hacer
          * que los nodos con mayor numero de lambdas sean mas utilizados.
@@ -107,6 +107,12 @@ public class Network {
         private int partialTotalConnections;
         private int numFibers;
         private int connectionIndex;
+        
+        /**
+         * Crea una nueva red inicializando todos los valores y creando
+         * los routers y las fibras que los unen, asi como asignando peso
+         * a las lambdas de cada fibra creada.
+         */
 	
 	
         public Network() {
@@ -160,11 +166,229 @@ public class Network {
         public int getTotalSteps() {
             return TOTAL_STEPS;
         }
+        public Set<Connection> getEnrutedConnections() {
+            return enrutedConnections;
+        }
+        public void setEnrutedConnections(Set<Connection> enrutedConnections) {
+            this.enrutedConnections = enrutedConnections;
+        }
+        public int getBlockedConnections() {
+            return blockedConnections;
+        }
+        public void setBlockedConnections(int s) {
+            this.blockedConnections = s;
+        }
+        public int getPartialBlockedConnections() {
+            return partialBlockedConnections;
+        }
+        public void setPartialBlockedConnections(int s) {
+            this.partialBlockedConnections = s;
+        }
+        public void setTotalConnections(int s) {
+            this.totalConnections = s;
+        }
+        public int getTotalConnections() {
+            return totalConnections;
+        }
+        public void setPartialTotalConnections(int s) {
+            this.partialTotalConnections = s;
+        }
+        public int getPartialTotalConnections() {
+            return partialTotalConnections;
+        }
        
         /************************************************************/
         
+        /************************************************************/
+        /*          Lectura y Escritura de N conexiones             */
+        /************************************************************/
+        
+        /**
+         * Crea el fichero raw.txt asi como tantas conexiones como se le indique
+         * y las escribe en el fichero.
+         * 
+         * @param n numero de conexiones a crear.
+         */
+        
+        public void createRawConnectionsFile(int n) {
+            File f = new File("raw.txt");
+            if (!f.exists()) {
+                try {
+                    f.createNewFile();
+                } catch (IOException ex) {
+                    Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            ArrayList<Connection> cons = generateRawConnections(n);
+            try {
+                writeRawConnectionsToFile(cons);
+            } catch (IOException ex) {
+                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        /**
+         * Genera las conexiones que se le indique a partir del fichero raw.txt.
+         * 
+         * @param n numero de conexiones a leer del fichero raw.txt.
+         */
+        
+        public ArrayList<Connection> generateRawConnectionsFromFile() {
+            ArrayList<Connection> cons;
+            cons = this.readRawConnectionsFromFile();
+            return cons;
+        }
+        
+        /**
+         * Genera tantas conexiones como se le indique con parametros aleatorios.
+         * 
+         * @param n numero de conexiones a crear.
+         */
+        
+        private ArrayList<Connection> generateRawConnections(int n) {
+            ArrayList<Connection> cons = new ArrayList<>();
+            for (int i = 0; i < n; ++i) {
+                int ttl = 1; // 250 for 12000 steps (half an hour)
+                int source = getNode();
+                int destination = getNode();
+                while (source == destination) {
+                    destination = getNode();
+                }
+                double bw = 310; // 45, 155, 310
+                int idx = getNextIndex();
+                Connection c = new Connection(idx, ttl, bw, source, destination);
+                cons.add(c);
+            }
+            return cons;
+        }
+        
+        /**
+         * Lee el fichero raw.txt entero y devuelve una lista con todas las
+         * conexiones obtenidas.
+         */
+        
+        private ArrayList<Connection> readRawConnectionsFromFile() {
+            ArrayList<Connection> cons = new ArrayList<>();
+            try {
+                FileInputStream fstream = new FileInputStream("raw.txt");
+                try (DataInputStream in = new DataInputStream(fstream)) {
+                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
+                    String strLine;
+                    while ((strLine = br.readLine()) != null) {
+                        String[] c = strLine.split(" ");
+                        Connection con = new Connection(Integer.parseInt(c[0]),
+                                                        Integer.parseInt(c[1]),
+                                                        Double.parseDouble(c[2]),
+                                                        Integer.parseInt(c[3]),
+                                                        Integer.parseInt(c[4]));
+                        cons.add(con);
+                   }
+                }
+            } catch (IOException | NumberFormatException e) {
+                    System.err.println("Error: " + e.getMessage());
+            }
+            return cons;
+        }
+        
+        /**
+         * Escribe todas las conexiones en el fichero raw.txt.
+         * 
+         * @param cons lista de conexiones a escribir en el fichero.
+         */
+        
+        private void writeRawConnectionsToFile(ArrayList<Connection> cons) throws IOException {
+            try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("raw.txt", true)))) {
+                for (Connection con : cons) {
+                    writer.println(Integer.toString(con.getId()) + " " + Integer.toString(con.getTimeToLive()) + " " + 
+                                   Double.toString(con.getBandwidth()) + " " + Integer.toString(con.getSource())+ " " +
+                                   Integer.toString(con.getDestination()));
+                }
+                writer.close();
+            } catch (FileNotFoundException | UnsupportedEncodingException ex) {
+                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        
+        /************************************************************/
+        
+        /************************************************************/
+        /*        Lectura y Escritura del simulador temporal        */
+        /************************************************************/
+        
+        /**
+         * Crea el fichero connections.txt y escribe en el todas las conexiones
+         * que se van generando.
+         * 
+         * @param step paso actual del simulador que permite separar las conexiones
+         * dentro del fichero.
+         */
+        
+        public void createConnectionsFile(int step) {
+            File f = new File("connections.txt");
+            if (!f.exists()) {
+                try {
+                    f.createNewFile();
+                } catch (IOException ex) {
+                    Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            ArrayList<Connection> cons = generateConnections();
+            try {
+                this.writeConnectionsToFile(step, cons);
+            } catch (IOException ex) {
+                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        /**
+         * Genera las conexiones referentes al paso de entrada a partir del fichero
+         * connections.txt.
+         * 
+         * @param step paso del que se desea obtener las conexiones.
+         */
+        
+        public ArrayList<Connection> generateConnectionsFromFile(int step) {
+            ArrayList<Connection> cons;
+            //int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
+            int slope = (int) CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX++/(TOTAL_STEPS/(24*DAYS)))%CONNECTION_SLOPE.length];
+            int lines = CONNECTION_N * slope;
+            cons = this.readConnectionsFromFile(step, lines);
+            return cons;
+        }
+        
+        /**
+         * Genera nuevas conexiones para cada paso siguiendo la distribucion creada
+         * anteriormente (CONNECTION_SLOPE).
+         */
+        
+        public ArrayList<Connection> generateConnections() {
+            ArrayList<Connection> cons = new ArrayList<>();
+            int slope = (int) CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX/(TOTAL_STEPS/(24*DAYS)))%CONNECTION_SLOPE.length]; // steps/24h for division
+            for (int i = 0; i < CONNECTION_N * slope; ++i) {
+                int ttl = (TOTAL_STEPS/(24*DAYS))/2; // 250 for 12000 steps (half an hour)
+                int source = getNode();
+                int destination = getNode();
+                while (source == destination) {
+                    destination = getNode();
+                }
+                double bw = 310; // 45, 155, 310
+                int idx = getNextIndex();
+                Connection c = new Connection(idx, ttl, bw, source, destination);
+                cons.add(c);
+            }
+            return cons;
+        }
+        
+        /**
+         * Lee del fichero connections.txt las conexiones referentes al paso actual.
+         * 
+         * @param step paso del que se desea obtener las conexiones.
+         * @param lines numero de lineas a leer (cada linea equivale a una conexion).
+         */
+        
         private ArrayList<Connection> readConnectionsFromFile(int step, int lines) {
-            ArrayList<Connection> cons = new ArrayList();
+            ArrayList<Connection> cons = new ArrayList<>();
             try {
                 FileInputStream fstream = new FileInputStream("connections.txt");
                 try (DataInputStream in = new DataInputStream(fstream)) {
@@ -195,29 +419,16 @@ public class Network {
             return cons;
         }
         
-        private ArrayList<Connection> readRawConnectionsFromFile(int n) {
-            ArrayList<Connection> cons = new ArrayList();
-            try {
-                FileInputStream fstream = new FileInputStream("raw.txt");
-                try (DataInputStream in = new DataInputStream(fstream)) {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(in));
-                    String strLine;
-                    while ((strLine = br.readLine()) != null) {
-                        String[] c = strLine.split(" ");
-                        Connection con = new Connection(Integer.parseInt(c[0]),
-                                                        Integer.parseInt(c[1]),
-                                                        Double.parseDouble(c[2]),
-                                                        Integer.parseInt(c[3]),
-                                                        Integer.parseInt(c[4]));
-                        cons.add(con);
-                   }
-                }
-            } catch (IOException | NumberFormatException e) {
-                    System.err.println("Error: " + e.getMessage());
-            }
-            return cons;
-        }
-        
+        /**
+         * Escribe las conexiones en el fichero connections.txt siguiendo el patron:
+         *  - Primero escribe el paso actual.
+         *  - Segundo escribe las conexiones de dicho paso, una por linea.
+         * De este modo, cuando necesitemos buscar posteriormente las conexiones
+         * por paso, simplemente tendremos que buscar la cabecera que queramos.
+         * 
+         * @param step paso del que se van a escribir las conexiones.
+         * @param c lista de conexiones a escribir.
+         */
         
         private void writeConnectionsToFile(int step, ArrayList<Connection> c) throws IOException {
             try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("connections.txt", true)))) {
@@ -233,105 +444,16 @@ public class Network {
             }
         }
         
-        public ArrayList<Connection> generateRawConnectionsFromFile(int n) {
-            ArrayList<Connection> cons;
-            cons = this.readRawConnectionsFromFile(n);
-            return cons;
-        }
+        /************************************************************/
         
-        private ArrayList<Connection> generateRawConnections(int n) {
-            ArrayList<Connection> cons = new ArrayList<>();
-            for (int i = 0; i < n; ++i) {
-                int ttl = 1; // 250 for 12000 steps (half an hour)
-                int source = getNode();
-                int destination = getNode();
-                while (source == destination) {
-                    destination = getNode();
-                }
-                double bw = 310; // 45, 155, 310
-                int idx = getNextIndex();
-                Connection c = new Connection(idx, ttl, bw, source, destination);
-                cons.add(c);
-            }
-            return cons;
-        }
+        /************************************************************/
+        /*                         Prints                           */
+        /************************************************************/
         
-        private void writeRawConnectionsToFile(ArrayList<Connection> cons) throws IOException {
-            try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("raw.txt", true)))) {
-                for (Connection con : cons) {
-                    writer.println(Integer.toString(con.getId()) + " " + Integer.toString(con.getTimeToLive()) + " " + 
-                                   Double.toString(con.getBandwidth()) + " " + Integer.toString(con.getSource())+ " " +
-                                   Integer.toString(con.getDestination()));
-                }
-                writer.close();
-            } catch (FileNotFoundException | UnsupportedEncodingException ex) {
-                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        public void createRawConnectionsFile(int n) {
-            File f = new File("raw.txt");
-            if (!f.exists()) {
-                try {
-                    f.createNewFile();
-                } catch (IOException ex) {
-                    Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            ArrayList<Connection> cons = generateRawConnections(n);
-            try {
-                writeRawConnectionsToFile(cons);
-            } catch (IOException ex) {
-                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        public void createConnectionsFile(int step) {
-            File f = new File("connections.txt");
-            if (!f.exists()) {
-                try {
-                    f.createNewFile();
-                } catch (IOException ex) {
-                    Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            ArrayList<Connection> cons = generateConnections();
-            try {
-                this.writeConnectionsToFile(step, cons);
-            } catch (IOException ex) {
-                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        public ArrayList<Connection> generateConnectionsFromFile(int step) {
-            ArrayList<Connection> cons;
-            //int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
-            int slope = CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX++/(TOTAL_STEPS/(24*DAYS)))%CONNECTION_SLOPE.length];
-            int lines = CONNECTION_N * slope;
-            cons = this.readConnectionsFromFile(step, lines);
-            return cons;
-        }
-        
-        private void calculateNumLambdas() {
-            int sum;
-            this.NODE_PROBABILITY = new double[34];
-            for (int i = 0; i < this.routers.size(); ++i) {
-                sum = 0;
-                List<Integer>  fib = this.routers.get(i).getAttachedFibers();
-                for (int j = 0; j < fib.size(); ++j) {
-                    sum += this.getFiber(fib.get(j)).getNumLambdas();
-                }
-                this.NODE_PROBABILITY[i] = sum / NUM_LAMBDAS;
-            }
-        }
-        
-        private void calculateNodeSum() {
-            this.NODE_SUM = new double[34];
-            this.NODE_SUM[0] = this.NODE_PROBABILITY[0];
-            for (int i = 1; i < this.NODE_PROBABILITY.length; ++i) {
-                this.NODE_SUM[i] = this.NODE_SUM[i - 1] + this.NODE_PROBABILITY[i];
-            }
-        }
+        /**
+         * Escribe por consola la distribucion de aparicion de un nodo en una
+         * nueva conexion.
+         */
         
         public void printNodeDistribution() {
             for (int i = 0; i < this.NODE_PROBABILITY.length; ++i) {
@@ -341,47 +463,137 @@ public class Network {
             }
         }
         
-        private int getNode() {
-            double rnd = Math.random();
-            for (int i = 0; i < this.NODE_SUM.length; ++i) {
-                if (rnd <= this.NODE_SUM[i]) {
-                    return i + 1;
-                }
-            }
-            return this.PATH_NOT_FOUND;
-        }
-
-        
-        /** CONNECTION_SLOPE_IDX does not have increment here because it is executed always
-         * before a generateConnectionsFromFile() function.
+        /**
+         * Escribe por consola el estado de todos los routers y fibras de la red.
          */
         
-        public ArrayList<Connection> generateConnections() {
-            ArrayList<Connection> cons = new ArrayList<>();
-            //int slope = CONNECTION_SLOPE[(CONNECTION_SLOPE_IDX++)%CONNECTION_SLOPE.length];
-            int slope = CONNECTION_SLOPE[((int)CONNECTION_SLOPE_IDX/(TOTAL_STEPS/(24*DAYS)))%CONNECTION_SLOPE.length]; // steps/24h for division
-            for (int i = 0; i < CONNECTION_N * slope; ++i) {
-                int ttl = (TOTAL_STEPS/(24*DAYS))/2; // 250 for 12000 steps (half an hour)
-                int source = getNode();
-                int destination = getNode();
-                while (source == destination) {
-                    destination = getNode();
+        public void printNetwork() {
+            for (Router r : routers) {
+                printRouter(r);
+                for (Integer i : r.getAttachedFibers()) {
+                    printFiber(getFiber(i));
+                    for (Lambda l : getFiber(i).getLambdas()) {
+                        printLambda(l);
+                    }
                 }
-                double bw = 310; // 45, 155, 310
-                int idx = getNextIndex();
-                Connection c = new Connection(idx, ttl, bw, source, destination);
-                cons.add(c);
             }
-            return cons;
         }
+        
+        /**
+         * Escribe una conexion en el fichero result.txt, indicando el camino
+         * que ha seguido si ha sido enrutada dentro de la red.
+         * 
+         * @param c conexion a escribir en el fichero.
+         */
+        
+        
+        public void printConnectionToFile(Connection c) throws IOException {
+            try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("result.txt", true)))) {
+                writer.println("------------------------------------------");
+                writer.println("Connection id: " + Integer.toString(c.getId()));
+                writer.println("Time to live: " + Integer.toString(c.getTimeToLive()));
+                writer.println("Source: " + Integer.toString(c.getSource()));
+                writer.println("Destination: " + Integer.toString(c.getDestination()));
+                writer.println("Lambda: " + Integer.toString(c.getLambda()));
+                writer.println("Bandwidth: " + Double.toString(c.getBandwidth()));
+                writer.println("LightPath Fibers: " + c.getLightpathFibers());
+                for (Integer i : c.getLightpathFibers()) {
+                    writer.println(i);
+                    writer.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode1()).getName());
+                    LinkedList<Router> path = this.getLightpath(i).getPath();
+                    for (Router r : path) {
+                        writer.println("-----" + r.getName());
+                    }
+                    writer.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode2()).getName());
+                }
+                writer.close();
+            } catch (FileNotFoundException | UnsupportedEncodingException ex) {
+                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        /**
+         * Escribe por consola la conexion, indicando el camino que ha seguido si
+         * ha sido enrutada dentro de la red.
+         * 
+         * @param c conexion a escribir por consola.
+         */
+        
+        public void printConnection(Connection c) {
+            System.out.println("------------------------------------------");
+            System.out.println("Connection id: " + c.getId());
+            System.out.println("Time to live: " + c.getTimeToLive());
+            System.out.println("Source: " + c.getSource());
+            System.out.println("Destination: " + c.getDestination());
+            System.out.println("Lambda: " + c.getLambda());
+            System.out.println("Bandwidth: " + c.getBandwidth());
+            System.out.println("LightPath Fibers: " + c.getLightpathFibers());
+            for (Integer i : c.getLightpathFibers()) {
+                System.out.println(i);
+                System.out.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode1()).getName());
+                LinkedList<Router> path = this.getLightpath(i).getPath();
+                for (Router r : path) {
+                    System.out.println("-----" + r.getName());
+                }
+                System.out.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode2()).getName());
+            }
+        }
+        
+        /**
+         * Escribe por consola el estado de un router.
+         * 
+         * @param r router a escribir por consola.
+         */
+        
+        public void printRouter(Router r) {
+            System.out.println("");
+            System.out.println("Router " + r.getId() + " " + r.getName());
+            System.out.println("--------------------------------");
+        }
+        
+        /**
+         * Escribe por consola el estado de una fibra.
+         * 
+         * @param fib fibra a escribir por consola.
+         */
+        
+        public void printFiber(Fiber fib) {
+            System.out.println("");
+            System.out.println("Fiber " + fib.getId() + "  Total BW " + fib.getTotalBandwidth());
+            System.out.println("------------------------- Lambdas");
+        }
+        
+        /**
+         * Escribe por consola el estado de una lambda.
+         * 
+         * @param l lambda a escribir por consola.
+         */
+        
+        public void printLambda(Lambda l) {
+            System.out.println(l.getId() + "     Residual BW " + l.getResidualBandwidth() + "     Weight " + l.getWeight());
+        }
+        
+        /************************************************************/
+        
+        /************************************************************/
+        /*                    Getters especificos                   */
+        /************************************************************/
+        
+        /**
+         * Devuelve el siguiente indice disponible que puede ser utilizado
+         * para una nueva conexion.
+         */
         
         private int getNextIndex() {
             return ++connectionIndex;
         }
-        private int getNextNumFiber() {
-            return ++this.numFibers;
-        }
         
+        /**
+         * Devuelve la fibra deseada, si existe, que se encuentra dentro de un
+         * lightpath.
+         * 
+         * @param id identificador de la fibra a devolver.
+         */
         
         public Fiber getLightfiber(int id) {
             for (Lightpath l : lightpaths) {
@@ -392,6 +604,12 @@ public class Network {
             return null;
         }
         
+        /**
+         * Devuelve el lightpath deseado, si existe.
+         * 
+         * @param id identificador del lightpath a devolver.
+         */
+        
         private Lightpath getLightpath(int id) {
             for (Lightpath l : this.lightpaths) {
                 if (id == l.getLightfiber().getId()) {
@@ -400,6 +618,14 @@ public class Network {
             }
             return null;
         }
+        
+        /**
+         * Recoge y devuelve todas las fibras que conectan los dos routers de entrada.
+         * 
+         * @param fibs lista de fibras de la red.
+         * @param source nodo de inicio de la fibra.
+         * @param destination nodo de finalizacion de la fibra.
+         */
         
         public Set<Fiber> getPlausibleFibers(List<Fiber> fibs, int source, int destination) {
             Set<Fiber> res = new HashSet();
@@ -411,6 +637,15 @@ public class Network {
             }
             return res;
         }
+        
+        /**
+         * De un conjunto de fibras previamente seleccionado, devuelve el
+         * identificador de la fibra que tenga menor peso y permita enrutar la
+         * conexion de entrada.
+         * 
+         * @param plausibleFibers lista de fibras candidatas.
+         * @param c conexion que debe ser enrutada por una de las fibras.
+         */
         
         public int getShortestFiberByWeight(Set<Fiber> plausibleFibers, Connection c) {
             double res = Double.MAX_VALUE;
@@ -448,72 +683,14 @@ public class Network {
             }
             return id;
         }
-	
-
-        public int findFiber(int source, int destination, Connection c) {
-            Set<Fiber> plausibleFibers = this.getPlausibleFibers(fibers, source, destination);
-            return this.getShortestFiberByWeight(plausibleFibers, c);
-        }
         
-        public int findOriginalFiber(int source, int destination) {
-            for (Fiber fib : fibers) {
-                if ((fib.getNode1() == source && fib.getNode2() == destination) ||
-                    (fib.getNode2() == source && fib.getNode1() == destination) &&
-                     fib.getId() <= ORIGINAL_FIBERS) {
-                    return fib.getId();
-                }
-            }
-            return PATH_NOT_FOUND;
-        }
-
-
-        public Set<Connection> getEnrutedConnections() {
-            return enrutedConnections;
-        }
-
-        public void setEnrutedConnections(Set<Connection> enrutedConnections) {
-            this.enrutedConnections = enrutedConnections;
-        }
-        
-        public int getBlockedConnections() {
-            return blockedConnections;
-        }
-        
-        public void setBlockedConnections(int s) {
-            this.blockedConnections = s;
-        }
-        
-        public int getPartialBlockedConnections() {
-            return partialBlockedConnections;
-        }
-        
-        public void setPartialBlockedConnections(int s) {
-            this.partialBlockedConnections = s;
-        }
-        
-        public void setTotalConnections(int s) {
-            this.totalConnections = s;
-        }
-        
-        public int getTotalConnections() {
-            return totalConnections;
-        }
-        
-        public void setPartialTotalConnections(int s) {
-            this.partialTotalConnections = s;
-        }
-        
-        public int getPartialTotalConnections() {
-            return partialTotalConnections;
-        }
-        
-        public void increaseTotalConnections() {
-            this.totalConnections++;
-        }
-        
-        public void increasePartialTotalConnections() {
-            this.partialTotalConnections++;
-        }
+        /**
+         * Devuelve una lista con todas las fibras, tanto originales como
+         * lightpaths creados, del router que hace referencia al identificador
+         * de entrada.
+         * 
+         * @param id identificador del router a obtener las fibras unidas a el.
+         */
         
         public List<Fiber> getAttachedFibersById(int id) {
             Router source = getRouter(id);
@@ -529,6 +706,15 @@ public class Network {
             }
             return attFibers;
         }
+        
+        /**
+         * Devuelve una lista de enteros que identifican las lambdas que pueden
+         * ser utilizadas por la nueva conexion para enrutarla dentro de la red.
+         * La unica restriccion que se aplica en este momento es que haya ancho
+         * de banda suficiente para poder enrutarla.
+         * 
+         * @param c conexion a enrutar.
+         */
         
         public List<Integer> getPlausibleLambdas(Connection c) {
             List<Integer> lambdas = new ArrayList<>();
@@ -550,59 +736,87 @@ public class Network {
                     }
                 }
             }
-            /**
-             * Reverse the lambda list to get first the higher ones, seems
-             * to work better without reversing.
-             */
-            
             Collections.reverse(lambdas);
             return lambdas;
         }
         
-        public void decreaseTimesToLive() {
-            if (this.enrutedConnections.isEmpty()) {
-                return;
-            }
-            Connection con;
-            Iterator<Connection> it = this.enrutedConnections.iterator(); 
-            while (it.hasNext()){
-                con = it.next();
-                con.setTimeToLive(con.getTimeToLive() - 1);
-                if (con.getTimeToLive() < 0) {
-                    this.ACTUAL_CONSUMPTION -= con.getConsumption();
-                    increaseLightpath(con);
-                    it.remove();
-                }
-            }
-        }
-
-        private void computeConnectionConsumption(Connection c) {
-            double cons = 0;
-            for (Integer i : c.getLightpathFibers()) {
-                LinkedList<Router> path = this.getLightpath(i).getPath();
-                Router source = path.getFirst();
-                for (Router r : path.subList(1, path.size())) {
-                    Router destination = r;
-                    int idx = this.findOriginalFiber(source.getId(), destination.getId());
-                    
-                    cons += source.getConsumption();
-                    cons += this.getFiber(idx).getLambda(c.getLambda()).getLongConsumption();
-                    source = destination;
-                    
-                    if (i == c.getLightpathFibers().get(c.getLightpathFibers().size() - 1) &&
-                        destination.getId() == path.getLast().getId()) {
-                        cons += destination.getConsumption();
+        /**
+         * Devuelve el siguiente entero disponible para ser utilizado como identificador
+         * de lightpath. Con esta funcion nos aseguramos de reusar aquellos
+         * identificadores de lightpaths que ya hayan sido elimiados.
+         */
+        
+        private int getAvailableId() {
+            for (int i = 54; i < Integer.MAX_VALUE; ++i) {
+                boolean found = false;
+                for (Iterator<Lightpath> it = this.lightpaths.iterator(); !found && it.hasNext();) {
+                    Lightpath l = it.next();
+                    if (l.getLightfiber().getId() == i) {
+                        found = true;
                     }
                 }
+                if (!found) {
+                    return i;
+                }
             }
-            c.setConsumption(cons*c.getBandwidth()/1000);
-            if (c.getConsumption() == 0) {
-                System.out.println("Wrong consumption");
-            }
-            this.TOTAL_CONSUMPTION += c.getConsumption();
-            this.ACTUAL_CONSUMPTION += c.getConsumption();
+            return Integer.MAX_VALUE;
         }
         
+        /**
+         * Devuelve el identificador de un router para ser utilizado en la 
+         * creacion de una nueva conexion teniendo en cuenta la distribucion de
+         * probabilidad de aparicion de los routers.
+         */
+        
+        private int getNode() {
+            double rnd = Math.random();
+            for (int i = 0; i < this.NODE_SUM.length; ++i) {
+                if (rnd <= this.NODE_SUM[i]) {
+                    return i + 1;
+                }
+            }
+            return this.PATH_NOT_FOUND;
+        }
+        
+        /**
+         * Devuelve el identificador de la fibra que une los dos nodos de entrada
+         * y permite enrutar la conexion de entrada.
+         * 
+         * @param source nodo de inicio de la fibra a buscar.
+         * @param destination nodo de destino de la fibra a buscar.
+         * @param c conexion a enrutar.
+         */
+        
+        public int findFiber(int source, int destination, Connection c) {
+            Set<Fiber> plausibleFibers = this.getPlausibleFibers(fibers, source, destination);
+            return this.getShortestFiberByWeight(plausibleFibers, c);
+        }
+        
+        /**
+         * Devuelve el identificador de la fibra que une los dos nodos de entrada.
+         * La fibra sera original, no pudiendo devolver nunca una que identifique
+         * a un lightpath.
+         * 
+         * @param source nodo de inicio de la fibra original a buscar.
+         * @param destination nodo de destino de la fibra original a buscar.
+         */
+        
+        public int findOriginalFiber(int source, int destination) {
+            for (Fiber fib : fibers) {
+                if ((fib.getNode1() == source && fib.getNode2() == destination) ||
+                    (fib.getNode2() == source && fib.getNode1() == destination) &&
+                     fib.getId() <= ORIGINAL_FIBERS) {
+                    return fib.getId();
+                }
+            }
+            return PATH_NOT_FOUND;
+        }
+        
+        /************************************************************/
+        
+        /************************************************************/
+        /*                 Modificacion de la red                   */
+        /************************************************************/
         
         public void decreaseBandwidths(Connection c, LinkedList<Router> path) {
             LinkedList<Router> physicalPath = new LinkedList<>();
@@ -684,45 +898,13 @@ public class Network {
                     source = destination;
                 }
         }
-
         
-        public Fiber lightpathAvailable(Connection c) {
-            for (Lightpath light : lightpaths) {
-                Fiber f = light.getLightfiber();
-                if ((f.getNode1() == c.getSource() && f.getNode2() == c.getDestination()
-                    || (f.getNode2() == c.getSource() && f.getNode1() == c.getDestination()))
-                    && f.getLambdas().get(0).getResidualBandwidth() >= c.getBandwidth()) {
-                    return f;
-                }
-                    
-            }
-            return null;
+        private void actualizeWeights(Fiber f, Lambda l) {
+            l.actualizeWeight(f.getTotalBandwidth(), f.getTotalBandwidth());
+            l.actualizeEnergeticWeight(getRouter(f.getNode1()).getConsumption(),
+                                       getRouter(f.getNode2()).getConsumption(),
+                                       f.getLength());
         }
-        
-        public void assignLightpath(Connection c, Fiber f) {
-            this.enrutedConnections.add(c);
-            c.setLambda(-f.getLightLambda().getId());
-            c.addLightpathFiber(f.getId());
-            f.getLightLambda().decreaseBandwidth(c.getBandwidth());
-            f.actualizeLightLambdaWeight(f.getLightLambda().getResidualBandwidth(), f.getTotalBandwidth());
-        }
-        
-        private int getAvailableId() {
-            for (int i = 54; i < Integer.MAX_VALUE; ++i) {
-                boolean found = false;
-                for (Iterator<Lightpath> it = this.lightpaths.iterator(); !found && it.hasNext();) {
-                    Lightpath l = it.next();
-                    if (l.getLightfiber().getId() == i) {
-                        found = true;
-                    }
-                }
-                if (!found) {
-                    return i;
-                }
-            }
-            return Integer.MAX_VALUE;
-        }
-        
         
         private void createLightpath(Connection c, LinkedList<Router> p, double bw, int dist) {
             LinkedList<Router> path = new LinkedList<>();
@@ -795,6 +977,78 @@ public class Network {
                 System.out.println("Should not happen");
             }
         }
+        
+        /************************************************************/
+        
+        /************************************************************/
+        /*          Calculo y modificacion de conexiones            */
+        /************************************************************/
+        
+        private void computeConnectionConsumption(Connection c) {
+            double cons = 0;
+            for (Integer i : c.getLightpathFibers()) {
+                LinkedList<Router> path = this.getLightpath(i).getPath();
+                Router source = path.getFirst();
+                for (Router r : path.subList(1, path.size())) {
+                    Router destination = r;
+                    int idx = this.findOriginalFiber(source.getId(), destination.getId());
+                    
+                    cons += source.getConsumption();
+                    cons += this.getFiber(idx).getLambda(c.getLambda()).getLongConsumption();
+                    source = destination;
+                    
+                    if (i == c.getLightpathFibers().get(c.getLightpathFibers().size() - 1) &&
+                        destination.getId() == path.getLast().getId()) {
+                        cons += destination.getConsumption();
+                    }
+                }
+            }
+            c.setConsumption(cons*c.getBandwidth()/1000);
+            if (c.getConsumption() == 0) {
+                System.out.println("Wrong consumption");
+            }
+            this.TOTAL_CONSUMPTION += c.getConsumption();
+            this.ACTUAL_CONSUMPTION += c.getConsumption();
+        }
+        
+        public void increaseTotalConnections() {
+            this.totalConnections++;
+        }
+        
+        public void increasePartialTotalConnections() {
+            this.partialTotalConnections++;
+        }
+        
+        public void decreaseTimesToLive() {
+            if (this.enrutedConnections.isEmpty()) {
+                return;
+            }
+            Connection con;
+            Iterator<Connection> it = this.enrutedConnections.iterator(); 
+            while (it.hasNext()){
+                con = it.next();
+                con.setTimeToLive(con.getTimeToLive() - 1);
+                if (con.getTimeToLive() < 0) {
+                    this.ACTUAL_CONSUMPTION -= con.getConsumption();
+                    increaseLightpath(con);
+                    it.remove();
+                }
+            }
+        }
+        
+        public void assignLightpath(Connection c, Fiber f) {
+            this.enrutedConnections.add(c);
+            c.setLambda(-f.getLightLambda().getId());
+            c.addLightpathFiber(f.getId());
+            f.getLightLambda().decreaseBandwidth(c.getBandwidth());
+            f.actualizeLightLambdaWeight(f.getLightLambda().getResidualBandwidth(), f.getTotalBandwidth());
+        }
+        
+        /************************************************************/
+        
+        /************************************************************/
+        /*       Creacion de todos los componentes de la red        */
+        /************************************************************/
         
         private void generateRouters() {
                 routers = new ArrayList<>();
@@ -913,11 +1167,55 @@ public class Network {
             }
         }
         
-        private void actualizeWeights(Fiber f, Lambda l) {
-            l.actualizeWeight(f.getTotalBandwidth(), f.getTotalBandwidth());
-            l.actualizeEnergeticWeight(getRouter(f.getNode1()).getConsumption(),
-                                       getRouter(f.getNode2()).getConsumption(),
-                                       f.getLength());
+        private List<Integer> generateAttachedFibers(int source) {
+            List<Integer> attFibersId = new ArrayList<>();
+            for (Fiber fib : fibers) {
+                if (fib.getNode1() == source || fib.getNode2() == source) {
+                    attFibersId.add(fib.getId());
+                }
+            }
+            return attFibersId;
+        }
+        
+        /************************************************************/
+        
+        
+        
+        
+        private void calculateNumLambdas() {
+            int sum;
+            this.NODE_PROBABILITY = new double[34];
+            for (int i = 0; i < this.routers.size(); ++i) {
+                sum = 0;
+                List<Integer>  fib = this.routers.get(i).getAttachedFibers();
+                for (int j = 0; j < fib.size(); ++j) {
+                    sum += this.getFiber(fib.get(j)).getNumLambdas();
+                }
+                this.NODE_PROBABILITY[i] = sum / NUM_LAMBDAS;
+            }
+        }
+        
+        private void calculateNodeSum() {
+            this.NODE_SUM = new double[34];
+            this.NODE_SUM[0] = this.NODE_PROBABILITY[0];
+            for (int i = 1; i < this.NODE_PROBABILITY.length; ++i) {
+                this.NODE_SUM[i] = this.NODE_SUM[i - 1] + this.NODE_PROBABILITY[i];
+            }
+        }
+        
+        
+        
+        public Fiber lightpathAvailable(Connection c) {
+            for (Lightpath light : lightpaths) {
+                Fiber f = light.getLightfiber();
+                if ((f.getNode1() == c.getSource() && f.getNode2() == c.getDestination()
+                    || (f.getNode2() == c.getSource() && f.getNode1() == c.getDestination()))
+                    && f.getLambdas().get(0).getResidualBandwidth() >= c.getBandwidth()) {
+                    return f;
+                }
+                    
+            }
+            return null;
         }
         
         
@@ -931,92 +1229,9 @@ public class Network {
         }
         
 
-        private List<Integer> generateAttachedFibers(int source) {
-            List<Integer> attFibersId = new ArrayList<>();
-            for (Fiber fib : fibers) {
-                if (fib.getNode1() == source || fib.getNode2() == source) {
-                    attFibersId.add(fib.getId());
-                }
-            }
-            return attFibersId;
-        }
-        
-        public void printNetwork() {
-            for (Router r : routers) {
-                printRouter(r);
-                for (Integer i : r.getAttachedFibers()) {
-                    printFiber(getFiber(i));
-                    for (Lambda l : getFiber(i).getLambdas()) {
-                        printLambda(l);
-                    }
-                }
-            }
-        }
-        
         public void deleteFiles() throws IOException {
             File f = new File("result.txt");
             f.delete();
-        }
-        
-        public void printConnectionToFile(Connection c) throws IOException {
-            try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter("result.txt", true)))) {
-                writer.println("------------------------------------------");
-                writer.println("Connection id: " + Integer.toString(c.getId()));
-                writer.println("Time to live: " + Integer.toString(c.getTimeToLive()));
-                writer.println("Source: " + Integer.toString(c.getSource()));
-                writer.println("Destination: " + Integer.toString(c.getDestination()));
-                writer.println("Lambda: " + Integer.toString(c.getLambda()));
-                writer.println("Bandwidth: " + Double.toString(c.getBandwidth()));
-                writer.println("LightPath Fibers: " + c.getLightpathFibers());
-                for (Integer i : c.getLightpathFibers()) {
-                    writer.println(i);
-                    writer.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode1()).getName());
-                    LinkedList<Router> path = this.getLightpath(i).getPath();
-                    for (Router r : path) {
-                        writer.println("-----" + r.getName());
-                    }
-                    writer.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode2()).getName());
-                }
-                writer.close();
-            } catch (FileNotFoundException | UnsupportedEncodingException ex) {
-                Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
-        public void printConnection(Connection c) {
-            System.out.println("------------------------------------------");
-            System.out.println("Connection id: " + c.getId());
-            System.out.println("Time to live: " + c.getTimeToLive());
-            System.out.println("Source: " + c.getSource());
-            System.out.println("Destination: " + c.getDestination());
-            System.out.println("Lambda: " + c.getLambda());
-            System.out.println("Bandwidth: " + c.getBandwidth());
-            System.out.println("LightPath Fibers: " + c.getLightpathFibers());
-            for (Integer i : c.getLightpathFibers()) {
-                System.out.println(i);
-                System.out.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode1()).getName());
-                LinkedList<Router> path = this.getLightpath(i).getPath();
-                for (Router r : path) {
-                    System.out.println("-----" + r.getName());
-                }
-                System.out.println(this.getRouter(this.getLightpath(i).getLightfiber().getNode2()).getName());
-            }
-        }
-        
-        public void printRouter(Router r) {
-            System.out.println("");
-            System.out.println("Router " + r.getId() + " " + r.getName());
-            System.out.println("--------------------------------");
-        }
-        
-        public void printFiber(Fiber fib) {
-            System.out.println("");
-            System.out.println("Fiber " + fib.getId() + "  Total BW " + fib.getTotalBandwidth());
-            System.out.println("------------------------- Lambdas");
-        }
-        
-        public void printLambda(Lambda l) {
-            System.out.println(l.getId() + "     Residual BW " + l.getResidualBandwidth() + "     Weight " + l.getWeight());
         }
         
         int tam = (TOTAL_STEPS/(24*DAYS)); // steps/24h (500 for 12000)
@@ -1064,6 +1279,4 @@ public class Network {
                 totales[totales.length - 1] = tot;
             }
         }
-        
-        
 }

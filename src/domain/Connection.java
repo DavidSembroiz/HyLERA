@@ -15,7 +15,7 @@ public class Connection {
         private List<Integer> lightpathFibers;
         private double consumption;
         
-        /*
+        /**
          * Devuelve una nueva conexion con los valores necesarios para intentar 
          * enrutarla dentro de la red.
          * 

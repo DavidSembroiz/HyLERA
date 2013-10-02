@@ -21,7 +21,7 @@ public class Dijkstra {
     private Connection c;
     private boolean found;
     
-    /*
+    /**
      * Crea una nueva instancia de la clase Dijkstra que es la encargada
      * de toda la ejecucion del algoritmo para enrutar conexiones.
      * 
@@ -34,7 +34,7 @@ public class Dijkstra {
         net = network;
     }
     
-    /*
+    /**
      * Nucleo de todo el algoritmo, es la funcion encargada de iniciar la
      * busqueda de un camino para cada conexion.
      * 
@@ -91,7 +91,7 @@ public class Dijkstra {
         }
     }
     
-    /*
+    /**
      * Funcion auxiliar que actualiza las distancias de todos los nodos vecinos
      * al nodo de entrada.
      * 
@@ -116,7 +116,7 @@ public class Dijkstra {
         }
     }
     
-    /*
+    /**
      * Funcion auxiliar que devuelve el nodo con menor distancia de la lista
      * de posibles candidatos.
      * 
@@ -139,7 +139,7 @@ public class Dijkstra {
         return min;
     }
     
-    /*
+    /**
      * Funcion auxiliar que devuelve la menor distancia obtenida hasta el momento
      * para el nodo de entrada.
      * 
@@ -155,7 +155,7 @@ public class Dijkstra {
         return d;
     }
     
-    /*
+    /**
      * Funcion auxiliar que devuelve el extremo de la fibra no usado hasta el
      * momento.
      * 
@@ -173,7 +173,7 @@ public class Dijkstra {
         return null;
     }
     
-    /*
+    /**
      * Funcion auxiliar que nos muestra si un nodo ya ha sido visitado o no.
      * 
      * @param f fibra que esta siendo analizada.
@@ -194,7 +194,7 @@ public class Dijkstra {
         return false;
     }
     
-    /*
+    /**
      * Funcion auxiliar que devuelve todos los vecinos del nodo de entrada
      * teniendo en cuenta una serie de restricciones:
      *  - No ha sido visitado todavia.
@@ -227,7 +227,7 @@ public class Dijkstra {
         return neighbors;
     }
     
-    /*
+    /**
      * Funcion auxiliar que devuelve la distancia entre los dos nodos de entrada
      * siguiendo el siguiente patron:
      *  - Se obtienen todas las posibles fibras que conectan los dos nodos.
@@ -272,7 +272,7 @@ public class Dijkstra {
         return Double.MAX_VALUE;
     }
     
-    /*
+    /**
      * Funcion auxiliar que devuelve el camino final obtenido para enrutar
      * la conexion.
      * 

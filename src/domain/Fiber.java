@@ -11,7 +11,7 @@ public class Fiber {
 	private List<Lambda> lambdas;
 	private double totalBandwidth;
         
-        /* 
+        /**
          * Devuelve una nueva fibra que puede representar tanto a una fibra original
          * como a una fibra de un lightpath.
          * 
@@ -81,7 +81,7 @@ public class Fiber {
         
         /************************************************************/
         
-        /* 
+        /**
          * Devuelve la lambda con identificador id para las fibras originales
          * unicamente.
          * 
@@ -93,7 +93,7 @@ public class Fiber {
             return this.lambdas.get(id - 1);
         }
         
-        /*
+        /**
          * Devuelve la unica lambda que contiene una fibra que representa
          * un lightpath.
          */
@@ -102,7 +102,7 @@ public class Fiber {
             return this.lambdas.get(0);
         }
         
-        /* 
+        /**
          * Decrementa el ancho de banda en bandwidth unidades de la lambda
          * con identificador lambda en las fibras originales unicamente.
          *  
@@ -114,7 +114,7 @@ public class Fiber {
             lambdas.get(lambda - 1).decreaseBandwidth(bandwidth);
         }
         
-        /* 
+        /**
          * Decrementa el ancho de banda en bandwidth unidades de la unica
          * lambda que contiene una fibra que representa un lightpath.
          * 
@@ -125,7 +125,7 @@ public class Fiber {
             lambdas.get(0).decreaseBandwidth(bandwidth);
         }
         
-        /* 
+        /**
          * Incrementa el ancho de banda en bandwidth unidades de la lambda
          * con identificador lambda en las fibras originales unicamente.
          * 
@@ -137,7 +137,7 @@ public class Fiber {
             lambdas.get(lambda - 1).increaseBandwidth(bandwidth);
         }
         
-        /* 
+        /**
          * Incrementa el ancho de banda en bw unidades de la unica lambda
          * que contiene una fibra que representa un lightpath.
          * 
@@ -148,7 +148,7 @@ public class Fiber {
             lambdas.get(0).increaseBandwidth(bw);
         }
         
-        /* 
+        /**
          * Actualiza el peso referente al bloqueo de conexiones.
          * 
          * @param lambda identificador de la lambda a actualizar.
@@ -160,7 +160,7 @@ public class Fiber {
             this.lambdas.get(lambda - 1).actualizeWeight(residual, total);
         }
         
-        /* 
+        /**
          * Actualiza el peso referente al bloqueo de conexiones en una fibra
          * que representa un lightpath.
          * 
@@ -172,7 +172,7 @@ public class Fiber {
             this.lambdas.get(0).actualizeWeight(residual, total);
         }
         
-        /* 
+        /**
          * Actualiza el peso referente a la energia consumida.
          * 
          * @param lambda identificador de la lambda a actualizar.
@@ -185,7 +185,7 @@ public class Fiber {
             this.lambdas.get(lambda - 1).actualizeEnergeticWeight(rs, rd, lon);
         }
         
-        /* 
+        /**
          * Asigna el valor infinito al peso referente a la energia consumida
          * de la lambda con identificador lambda.
          * 

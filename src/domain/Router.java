@@ -10,7 +10,7 @@ public class Router {
         private double consumption;
         private List<Integer> attachedFibers;
         
-        /*
+        /**
          * Crea un nuevo Router que representara un nodo de la red.
          * 
          * @param id identificador unico del router.

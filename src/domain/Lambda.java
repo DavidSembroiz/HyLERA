@@ -8,7 +8,7 @@ public class Lambda {
         private double weight;
         private double longConsumption;
         
-        /*
+        /**
          * Devuelve una nueva lambda a la que solo se le asigna el identificador 
          * unico por el momento.
          * 
@@ -19,7 +19,7 @@ public class Lambda {
             this.id = id;
         }
         
-        /*
+        /**
          * Devuelve una nueva lambda.
          * 
          * @param id identificador unico de la lambda dentro de la fibra.
@@ -64,7 +64,7 @@ public class Lambda {
         
         /************************************************************/
         
-        /*
+        /**
          * Asigna el consumo referente a la longitud de la fibra que contiene la 
          * lambda utilizando la formula floor(longitud/500)*3, que representa 
          * un regenerador de señal que consume 3 W/GB cada 500 Km.
@@ -80,7 +80,7 @@ public class Lambda {
             return this.longConsumption;
         }
         
-        /*
+        /**
          * Actualiza el peso de la lambda referente al consumo energetico. Si
          * el consumo de source y destination es 0, se asigna peso infinito.
          * 
@@ -99,7 +99,7 @@ public class Lambda {
             }
         }
         
-        /*
+        /**
          * Actualiza el peso de la lambda referente al bloqueo de conexiones 
          * siguiendo la formula 1/(residualBw * Log10(totalBw)).
          * 
@@ -111,7 +111,7 @@ public class Lambda {
             this.weight = 1./(residual*Math.log10(total));
         }
         
-        /*
+        /**
          * Decrementa el ancho de banda de la lambda en bandwidth unidades.
          * 
          * @param bandwidth unidades a decrementar.
@@ -121,7 +121,7 @@ public class Lambda {
             this.residualBandwidth -= bandwidth;
         }
         
-        /*
+        /**
          * Incrementa el ancho de banda de la lambda en bandwidth unidades.
          * 
          * @param bandwidth unidades a incrementar.
