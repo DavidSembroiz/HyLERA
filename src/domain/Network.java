@@ -35,7 +35,7 @@ public class Network {
          */
     
         private int DAYS = 2;
-        private int TOTAL_STEPS = 8640*DAYS;
+        private int TOTAL_STEPS = (8640/2)*DAYS;
    
         /**
          * Modo de actuacion de la red:
@@ -82,10 +82,12 @@ public class Network {
          * por paso que deben intentar ser enrutadas-
          */
         
-        private final double[] CONNECTION_SLOPE = 
-            {5, 7, 9, 12, 16, 18, 22, 24, 26, 30, 32, 32, 32, 32, 30, 26, 24, 22, 18, 16, 12, 9, 7, 5};
+        
+        private final int[] CONNECTION_SLOPE = 
+             {1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1};
+
+        private int CONNECTION_N = 10;
         private int CONNECTION_SLOPE_IDX = 0;
-        private int CONNECTION_N = 1;
         
         /**
          * Listas para guardar la probabilidad de aparacion de un nodo en una nueva
@@ -818,6 +820,15 @@ public class Network {
         /*                 Modificacion de la red                   */
         /************************************************************/
         
+        /**
+         * Decrementa el ancho de banda de todas las lambdas pertenecientes
+         * a fibras que forman el camino asignado a la nueva conexion y actualiza
+         * el peso de las mismas.
+         * 
+         * @param c nueva conexion enrutada.
+         * @param path camino asignado a la nueva conexion.
+         */
+        
         public void decreaseBandwidths(Connection c, LinkedList<Router> path) {
             LinkedList<Router> physicalPath = new LinkedList<>();
             Router source;
@@ -880,6 +891,15 @@ public class Network {
             }
         }
         
+        /**
+         * Incrementa el ancho de banda de todas las lambdas pertenecientes
+         * a fibras que forman el camino asignado a la conexion que ha finalizado
+         * su tiempo de vida dentro de la red y actualiza el peso de las mismas.
+         * 
+         * @param c conexion finalizada, eliminada de la red.
+         * @param path camino asignado a la conexion que esta siendo retirada.
+         */
+        
         public void increaseBandwidths(Connection c, LinkedList<Router> path) {
             Iterator<Router> it = path.iterator();
             Router source = it.next();
@@ -899,12 +919,32 @@ public class Network {
                 }
         }
         
+        /**
+         * Actualiza el peso de una lambda perteneciente a la fibra indicada.
+         * 
+         * @param f fibra que contiene la lambda a actualizar.
+         * @param l lambda a actualizar.
+         */
+        
         private void actualizeWeights(Fiber f, Lambda l) {
             l.actualizeWeight(f.getTotalBandwidth(), f.getTotalBandwidth());
             l.actualizeEnergeticWeight(getRouter(f.getNode1()).getConsumption(),
                                        getRouter(f.getNode2()).getConsumption(),
                                        f.getLength());
         }
+        
+        /**
+         * Crea un nuevo lightpath que tendra como origen y destino los extremos
+         * de la conexion que esta siendo enrutada. Actualiza los pesos del camino
+         * perteneciente al lightpath y asigna el nuevo lightpath a los routers
+         * correspondientes para poder utilizar este nuevo camino en posteriores
+         * conexiones.
+         * 
+         * @param c conexion que esta siendo enrutada.
+         * @param p camino asignado a la nueva conexion.
+         * @param bw ancho de banda requerido por la conexion.
+         * @param dist longitud total del nuevo lightpath.
+         */
         
         private void createLightpath(Connection c, LinkedList<Router> p, double bw, int dist) {
             LinkedList<Router> path = new LinkedList<>();
@@ -932,6 +972,14 @@ public class Network {
             lightpaths.add(light);
         }
         
+        /**
+         * Incrementa el ancho de banda del lightpath utilizado por la conexion 
+         * que esta siendo retirada de la red y lo elimina si ya no esta siendo 
+         * usado por nadie mas.
+         * 
+         * @param c conexion retirada de la red.
+         */
+        
         private void increaseLightpath(Connection c) {
             boolean delete;
             Iterator<Integer> ids = c.getLightpathFibers().iterator();
@@ -954,6 +1002,14 @@ public class Network {
                 }
             }
         }
+        
+        /**
+         * Elimina el lightpath asignado a la conexion y lo desasigna de los 
+         * routers que tenia como extremos.
+         * 
+         * @param c conexion retirada de la red.
+         * @param lightfiber identificador del lightpath a eliminar.
+         */
         
         private void deleteLightpath(Connection c, int lightfiber) {
             Lightpath lf = null;
@@ -984,6 +1040,17 @@ public class Network {
         /*          Calculo y modificacion de conexiones            */
         /************************************************************/
         
+        /**
+         * Calcula el factor de gasto de la conexion. Este factor es una suma
+         * del coste que tiene cada router en W/GB y el coste referente a los 
+         * amplificadores de las fibras a causa de su longitud.
+         * El factor equivale a un valor de gasto en W/GB, que luego se 
+         * multiplica por el ancho de banda de la conexion para conseguir los W
+         * consumidos.
+         * 
+         * @param c conexion de la que se calcula el consumo.
+         */
+        
         private void computeConnectionConsumption(Connection c) {
             double cons = 0;
             for (Integer i : c.getLightpathFibers()) {
@@ -1011,13 +1078,28 @@ public class Network {
             this.ACTUAL_CONSUMPTION += c.getConsumption();
         }
         
+        /**
+         * Incrementa el numero de conexiones totales que se han intentado
+         * enrutar dentro de la red.
+         */
+        
         public void increaseTotalConnections() {
             this.totalConnections++;
         }
         
+        /**
+         * Incrementa el numero de conexiones en el espacion temporal corto que 
+         * se han intentado enrutar dentro de la red.
+         */
+        
         public void increasePartialTotalConnections() {
             this.partialTotalConnections++;
         }
+        
+        /**
+         * Decrementa en una unidad el tiempo de vida de todas las conexiones 
+         * que se encuentran dentro de la red.
+         */
         
         public void decreaseTimesToLive() {
             if (this.enrutedConnections.isEmpty()) {
@@ -1036,6 +1118,14 @@ public class Network {
             }
         }
         
+        /**
+         * Asigna el nuevo lightpath creado a la conexion.
+         * 
+         * @param c nueva conexion enrutada.
+         * @param f nueva fibra que hace referencia al lightpath para la nueva 
+         * conexion.
+         */
+        
         public void assignLightpath(Connection c, Fiber f) {
             this.enrutedConnections.add(c);
             c.setLambda(-f.getLightLambda().getId());
@@ -1044,11 +1134,42 @@ public class Network {
             f.actualizeLightLambdaWeight(f.getLightLambda().getResidualBandwidth(), f.getTotalBandwidth());
         }
         
+        /**
+         * Busca un lightpath ya creado que tenga los mismos extremos que la 
+         * conexion que esta siendo enrutada. Si existe ese lightpath, se le 
+         * asignara directamente a la nueva conexion sin necesidad de buscar 
+         * un camino diferente en la red.
+         * 
+         * @param c nueva conexion siendo enrutada.
+         */
+        
+        public Fiber lightpathAvailable(Connection c) {
+            for (Lightpath light : lightpaths) {
+                Fiber f = light.getLightfiber();
+                if ((f.getNode1() == c.getSource() && f.getNode2() == c.getDestination()
+                    || (f.getNode2() == c.getSource() && f.getNode1() == c.getDestination()))
+                    && f.getLambdas().get(0).getResidualBandwidth() >= c.getBandwidth()) {
+                    return f;
+                }
+                    
+            }
+            return null;
+        }
+        
         /************************************************************/
         
         /************************************************************/
         /*       Creacion de todos los componentes de la red        */
         /************************************************************/
+        
+        /**
+         * Genera todos los routers de la red asignando todos los valores 
+         * necesarios:
+         *  - Identificador.
+         *  - Nombre.
+         *  - Consumo en W/GB.
+         *  - Fibras que tienen un extremo en el nodo.
+         */
         
         private void generateRouters() {
                 routers = new ArrayList<>();
@@ -1091,6 +1212,20 @@ public class Network {
 		routers.add(new Router(33, "CY", ROUTER_CONSUMPTION[7], generateAttachedFibers(33)));
 		routers.add(new Router(34, "IL", ROUTER_CONSUMPTION[8], generateAttachedFibers(34)));
 	}
+        
+        /**
+         * Genera todas las fibras originales de la red asignando todos los 
+         * valores necesarios:
+         *  - Identificador.
+         *  - Nodo de inicio.
+         *  - Nodo de finalizacion.
+         *  - Numero de lambdas que contiene.
+         *  - Ancho de banda de cada lambda.
+         *  - Longitud en KM.
+         * 
+         * Las fibras son bidireccionales, por lo que el nodo de inicio y de 
+         * finalizacion pueden nombrarse indistintamente.
+         */
 
 	private void generateFibers() {
                 fibers = new ArrayList<>();
@@ -1154,6 +1289,10 @@ public class Network {
                 fibers.add(new Fiber(53, 11, 16, 32, 10000, 420));
 	}
         
+        /**
+         * Genera todas las lambdas para cada una de las fibras de la red.
+         */
+        
         private void generateLambdas() {
             for (Fiber fib : fibers) {
                 List<Lambda> l = new ArrayList<>();
@@ -1167,6 +1306,14 @@ public class Network {
             }
         }
         
+        /**
+         * Devuelve una lista con los identificadores de las fibras que deben 
+         * estar conectadas al router que esta siendo tratado.
+         * 
+         * @param source identificador del router para obtener las fibras 
+         * adyacentes.
+         */
+        
         private List<Integer> generateAttachedFibers(int source) {
             List<Integer> attFibersId = new ArrayList<>();
             for (Fiber fib : fibers) {
@@ -1177,10 +1324,32 @@ public class Network {
             return attFibersId;
         }
         
+        /**
+         * Asigna a cada router el ancho de banda total que pueden soportar.
+         */
+        
+        private void setTotalRouterBandwidths() {
+            for (Router r : routers) {
+                for (Integer b : r.getAttachedFibers()) {
+                    Fiber f = this.getFiber(b);
+                    r.increaseTotalBandwidth(f.getTotalBandwidth()*f.getNumLambdas());
+                }
+            }
+        }
+        
         /************************************************************/
         
+        /************************************************************/
+        /*             Funciones auxiliares de calculo              */
+        /************************************************************/
         
-        
+        /**
+         * Calcula la probabilidad de aparicion de un router en una nueva conexion 
+         * teniendo en cuenta la cantidad de lambdas que maneja dicho nodo.
+         * Cuantas mas variedad de lambdas tenga el router, mayor sera su 
+         * probabilidad de aparicion a la hora de generar nuevas conexiones 
+         * con origen y destino aleatorios.
+         */
         
         private void calculateNumLambdas() {
             int sum;
@@ -1195,6 +1364,11 @@ public class Network {
             }
         }
         
+        /**
+         * Funcion auxiliar para tener una lista con la probabilidad sumada de 
+         * los nodos y asi encontrar mas rapidamente el router a utilizar.
+         */
+        
         private void calculateNodeSum() {
             this.NODE_SUM = new double[34];
             this.NODE_SUM[0] = this.NODE_PROBABILITY[0];
@@ -1203,36 +1377,28 @@ public class Network {
             }
         }
         
-        
-        
-        public Fiber lightpathAvailable(Connection c) {
-            for (Lightpath light : lightpaths) {
-                Fiber f = light.getLightfiber();
-                if ((f.getNode1() == c.getSource() && f.getNode2() == c.getDestination()
-                    || (f.getNode2() == c.getSource() && f.getNode1() == c.getDestination()))
-                    && f.getLambdas().get(0).getResidualBandwidth() >= c.getBandwidth()) {
-                    return f;
-                }
-                    
-            }
-            return null;
-        }
-        
-        
-        private void setTotalRouterBandwidths() {
-            for (Router r : routers) {
-                for (Integer b : r.getAttachedFibers()) {
-                    Fiber f = this.getFiber(b);
-                    r.increaseTotalBandwidth(f.getTotalBandwidth()*f.getNumLambdas());
-                }
-            }
-        }
-        
+        /**
+         * Funcion de borrado de ficheros.
+         */
 
         public void deleteFiles() throws IOException {
             File f = new File("result.txt");
             f.delete();
         }
+        
+        /************************************************************/
+        
+        /************************************************************/
+        /*     Bloque de calculo parcial del bloqueo en la red      */
+        /************************************************************/
+        
+        /**
+         * Variables para llevar el control del porcentaje de bloqueo de la red 
+         * en una ventana de tiempo marcada por tam. Esto nos permite tener 
+         * un control de la red utilizando solo datos recientes y asi no tener
+         * que utilizar la historia muy pasada que puede llegar a afectarnos 
+         * negativamente a la hora de tomar decisiones.
+         */
         
         int tam = (TOTAL_STEPS/(24*DAYS)); // steps/24h (500 for 12000)
         
@@ -1240,6 +1406,14 @@ public class Network {
         int[] totales = new int[tam];
         boolean full = false;
         int index = 0;
+        
+        /**
+         * Calcula y devuelve el porcenta de bloqueo parcial de la red.
+         * 
+         * @param act numero de conexiones bloqueadas en un paso.
+         * @param tot numero total de conexiones que se han intentado enrutar
+         * en un paso.
+         */
         
         public double calculateBlock(int act, int tot) {
             if (!full) {
@@ -1264,6 +1438,15 @@ public class Network {
             return (num/den)*100;
         }
         
+        /**
+         * Introduce nuevos datos en la ventana de calculo del porcentaje de 
+         * bloqueo parcial de la red.
+         * 
+         * @param act numero de conexiones bloqueadas en un paso.
+         * @param tot numero total de conexiones que se han intentado enrutar
+         * en un paso.
+         */
+        
         public void insertPartialData(int act, int tot) {
             if (!full) {
                 bloqueos[index] = act;
@@ -1279,4 +1462,6 @@ public class Network {
                 totales[totales.length - 1] = tot;
             }
         }
+        
+        /************************************************************/
 }

@@ -59,14 +59,12 @@ public class Main {
                     System.out.println("Total Network Consumption: " + net.getTotalConsumption());
                     System.out.println("");
             }
-            //if (step%2 == 0) {
             for (Connection c : connections) {
                 dij.execute(net.getRouter(c.getSource()), c);
                 
                 //net.printConnection(c);
                 //net.printConnectionToFile(c);
             }
-            //}
             
             if (hybrid && step > 0 && step%(TOTAL_STEPS/(240*DAYS)) == 0) {
                 if (net.MODE == 1 && partial > 2) {
