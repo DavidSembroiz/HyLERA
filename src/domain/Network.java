@@ -34,8 +34,8 @@ public class Network {
          *    que es un valor razonable.
          */
     
-        private int DAYS = 2;
-        private int TOTAL_STEPS = (8640/2)*DAYS;
+        private int DAYS = 3;
+        private int TOTAL_STEPS = 5000*DAYS;
    
         /**
          * Modo de actuacion de la red:
@@ -83,10 +83,10 @@ public class Network {
          */
         
         
-        private final int[] CONNECTION_SLOPE = 
-             {1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1};
+        private final double[] CONNECTION_SLOPE = 
+            {5, 7, 9, 14, 18, 20, 24, 26, 28, 30, 34, 36, 38, 38, 34, 30, 28, 26, 24, 20, 18, 14, 9, 7};
 
-        private int CONNECTION_N = 10;
+        private int CONNECTION_N = 1;
         private int CONNECTION_SLOPE_IDX = 0;
         
         /**

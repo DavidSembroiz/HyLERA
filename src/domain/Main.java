@@ -39,7 +39,7 @@ public class Main {
         //net.printNodeDistribution();
         while (step < TOTAL_STEPS) {
             net.decreaseTimesToLive();
-            //net.createConnectionsFile(step);
+            net.createConnectionsFile(step);
             ArrayList<Connection> connections = net.generateConnectionsFromFile(step);
             //ArrayList<Connection> connections = net.generateConnections();
             if (step > 0 && step%(TOTAL_STEPS/(240*DAYS)) == 0) { // 10 times every hour
