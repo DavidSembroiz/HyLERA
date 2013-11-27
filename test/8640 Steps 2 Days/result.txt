@@ -1,1 +1,0 @@
-El test no consigue que la red se sature en ningun momento y por ese motivo no se consigue la curva caracteristica en el resultado de salida.

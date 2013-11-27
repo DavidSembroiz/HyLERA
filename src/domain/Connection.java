@@ -12,7 +12,7 @@ public class Connection {
 	private int destination;
 	private int fiber;
 	private int lambda;
-        private List<Integer> lightpathFibers;
+        private final List<Integer> lightpathFibers;
         private double consumption;
         
         /**

@@ -1,0 +1,13 @@
+ant -f "E:\\FIB\\PFC\\Source Code\\RWA" -Ddebug,class=domain,Main -Dnb,internal,action,name=debug debug
+init:
+Deleting: E:\FIB\PFC\Source Code\RWA\build\built-jar,properties
+deps-jar:
+Updating property file: E:\FIB\PFC\Source Code\RWA\build\built-jar,properties
+compile:
+Blocked connections: 16
+Total connections: 2500
+Percentaje of blocking: 0,64
+Actual Network Consumption: 10216,82500000001
+Total Network Consumption: 10216,82500000001
+debug:
+BUILD SUCCESSFUL (total time: 10 seconds)

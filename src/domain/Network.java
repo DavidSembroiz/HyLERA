@@ -34,8 +34,8 @@ public class Network {
          *    que es un valor razonable.
          */
     
-        private int DAYS = 3;
-        private int TOTAL_STEPS = 5000*DAYS;
+        private int DAYS = 4;
+        private int TOTAL_STEPS = 2400*DAYS;
    
         /**
          * Modo de actuacion de la red:
@@ -43,7 +43,7 @@ public class Network {
          * - MODE 1: Energy aware.
          */
 
-        public int MODE = 1;
+        public int MODE = 0;
         
         /**
          * Consumo de la red.
@@ -83,10 +83,10 @@ public class Network {
          */
         
         
-        private final double[] CONNECTION_SLOPE = 
-            {5, 7, 9, 14, 18, 20, 24, 26, 28, 30, 34, 36, 38, 38, 34, 30, 28, 26, 24, 20, 18, 14, 9, 7};
+        private final int[] CONNECTION_SLOPE = 
+             {1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1};
 
-        private int CONNECTION_N = 1;
+        private int CONNECTION_N = 15;
         private int CONNECTION_SLOPE_IDX = 0;
         
         /**
@@ -232,7 +232,6 @@ public class Network {
         /**
          * Genera las conexiones que se le indique a partir del fichero raw.txt.
          * 
-         * @param n numero de conexiones a leer del fichero raw.txt.
          */
         
         public ArrayList<Connection> generateRawConnectionsFromFile() {
@@ -498,6 +497,7 @@ public class Network {
                 writer.println("Destination: " + Integer.toString(c.getDestination()));
                 writer.println("Lambda: " + Integer.toString(c.getLambda()));
                 writer.println("Bandwidth: " + Double.toString(c.getBandwidth()));
+                writer.println("Consumption: " + c.getConsumption());
                 writer.println("LightPath Fibers: " + c.getLightpathFibers());
                 for (Integer i : c.getLightpathFibers()) {
                     writer.println(i);
@@ -525,8 +525,8 @@ public class Network {
             System.out.println("------------------------------------------");
             System.out.println("Connection id: " + c.getId());
             System.out.println("Time to live: " + c.getTimeToLive());
-            System.out.println("Source: " + c.getSource());
-            System.out.println("Destination: " + c.getDestination());
+            System.out.println("Source: " + c.getSource() + " " + getRouter(c.getSource()).getName());
+            System.out.println("Destination: " + c.getDestination() + " " + getRouter(c.getDestination()).getName());
             System.out.println("Lambda: " + c.getLambda());
             System.out.println("Bandwidth: " + c.getBandwidth());
             System.out.println("LightPath Fibers: " + c.getLightpathFibers());
@@ -550,6 +550,7 @@ public class Network {
         public void printRouter(Router r) {
             System.out.println("");
             System.out.println("Router " + r.getId() + " " + r.getName());
+            System.out.println("Total BW: " + r.getTotalBandwidth());
             System.out.println("--------------------------------");
         }
         
@@ -573,6 +574,7 @@ public class Network {
         
         public void printLambda(Lambda l) {
             System.out.println(l.getId() + "     Residual BW " + l.getResidualBandwidth() + "     Weight " + l.getWeight());
+            System.out.println("                             Energetic Weight: " + l.getEnergeticWeight());
         }
         
         /************************************************************/
@@ -877,9 +879,6 @@ public class Network {
                             fi.getLambda(c.getLambda()).getResidualBandwidth(),
                             fi.getTotalBandwidth());
                         fi.setInfinityLambdaEnergeticWeight(c.getLambda());
-                        if (fi.getLambda(c.getLambda()).getEnergeticWeight() != fi.getLambda(c.getLambda()).getWeight()) {
-                            System.out.println("Wrong Weights");
-                        }
                     }
                     source = destination;
                 }
@@ -1029,9 +1028,6 @@ public class Network {
                 fibers.remove(rem);
                 lightpaths.remove(lf);
             }
-            else {
-                System.out.println("Should not happen");
-            }
         }
         
         /************************************************************/
@@ -1071,9 +1067,6 @@ public class Network {
                 }
             }
             c.setConsumption(cons*c.getBandwidth()/1000);
-            if (c.getConsumption() == 0) {
-                System.out.println("Wrong consumption");
-            }
             this.TOTAL_CONSUMPTION += c.getConsumption();
             this.ACTUAL_CONSUMPTION += c.getConsumption();
         }
@@ -1130,6 +1123,7 @@ public class Network {
             this.enrutedConnections.add(c);
             c.setLambda(-f.getLightLambda().getId());
             c.addLightpathFiber(f.getId());
+            computeConnectionConsumption(c);
             f.getLightLambda().decreaseBandwidth(c.getBandwidth());
             f.actualizeLightLambdaWeight(f.getLightLambda().getResidualBandwidth(), f.getTotalBandwidth());
         }
@@ -1400,7 +1394,8 @@ public class Network {
          * negativamente a la hora de tomar decisiones.
          */
         
-        int tam = (TOTAL_STEPS/(24*DAYS)); // steps/24h (500 for 12000)
+        //int tam = (TOTAL_STEPS/(24*DAYS)); // steps/24h (500 for 12000)
+        int tam = (TOTAL_STEPS/(DAYS*4));
         
         int[] bloqueos = new int[tam];
         int[] totales = new int[tam];
