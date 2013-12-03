@@ -43,7 +43,19 @@ public class Network {
          * - MODE 1: Energy aware.
          */
 
-        public int MODE = 0;
+        public int MODE = 1;
+        
+        /**
+         * Sliding window, parametro expresado en horas.
+         */
+        
+        public int TIME_WINDOW = 3;
+        
+        /**
+         * Valor que indica si se utiliza el metodo HyLERA.
+         */
+        
+        public boolean hylera = true;
         
         /**
          * Consumo de la red.
@@ -84,9 +96,9 @@ public class Network {
         
         
         private final int[] CONNECTION_SLOPE = 
-             {1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1, 1};
+             {22, 19, 18, 17, 16, 14, 16, 18, 22, 25, 28, 31, 34, 37, 40, 42, 42, 40, 37, 34, 31, 28, 25, 22};
 
-        private int CONNECTION_N = 15;
+        private int CONNECTION_N = 1;
         private int CONNECTION_SLOPE_IDX = 0;
         
         /**
@@ -334,6 +346,7 @@ public class Network {
                     Logger.getLogger(Network.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            else return;
             ArrayList<Connection> cons = generateConnections();
             try {
                 this.writeConnectionsToFile(step, cons);
@@ -1394,13 +1407,20 @@ public class Network {
          * negativamente a la hora de tomar decisiones.
          */
         
-        //int tam = (TOTAL_STEPS/(24*DAYS)); // steps/24h (500 for 12000)
-        int tam = (TOTAL_STEPS/(DAYS*4));
+        int tam = (TOTAL_STEPS/(DAYS*(24/TIME_WINDOW)));
         
         int[] bloqueos = new int[tam];
         int[] totales = new int[tam];
         boolean full = false;
         int index = 0;
+        
+        public int getTotal() {
+            int sum = 0;
+            for (int i = totales.length - 1; i >= totales.length - 100; --i) {
+                sum += totales[i];
+            }
+            return sum;
+        }
         
         /**
          * Calcula y devuelve el porcenta de bloqueo parcial de la red.
