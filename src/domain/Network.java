@@ -26,12 +26,6 @@ public class Network {
         /**
          * Parametros que controlan el numero de dias y de pasos diarios que va
          * a ejecutar el algoritmo.
-         * El valor referente al numero de pasos diarios se explica de la siguiente
-         * manera:
-         *  - Como vemos mas abajo, el numero de escalones que tiene una ejecucion
-         *    es de 24. Utilizando el valor de 8640 nos aseguramos de que cada
-         *    vez que se creen conexiones, habran pasado exactamente 10 segundos,
-         *    que es un valor razonable.
          */
     
         private int DAYS = 4;
@@ -43,7 +37,7 @@ public class Network {
          * - MODE 1: Energy aware.
          */
 
-        public int MODE = 1;
+        public int MODE = 0;
         
         /**
          * Sliding window, parametro expresado en horas.

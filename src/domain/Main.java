@@ -74,27 +74,26 @@ public class Main {
              * percentaje constraint.
              */
             
-            
             if (net.hylera) {
                 int sum = net.getTotal();
                 if (net.MODE == 0) {
-                    if (sum < 3700) {
-                        //if (!first) first = true;
-                        //else {
+                    if (sum < 1800) {
+                        if (!first) first = true;
+                        else {
                             net.MODE = 1;
-                            //first = false;
+                            first = false;
                             System.out.println("Mode changed from 0 to 1 (Activated Energy Awareness)");
-                        //}
+                        }
                     }
                 }
                 else if (net.MODE == 1) {
-                    if (sum >= 3700) {
-                        //if (second) second = false;
-                        //else {
+                    if (sum >= 1800) {
+                        if (second) second = false;
+                        else {
                             net.MODE = 0;
-                            //second = true;
+                            second = true;
                             System.out.println("Mode changed from 1 to 0 (Activated Blocking Awareness)");
-                        //}
+                        }
                     }
                 }
             }
